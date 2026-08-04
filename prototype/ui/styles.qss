@@ -155,3 +155,44 @@ QPushButton#dockIcon QLabel#appIconLabel {
     color: #9aa1ab;
     font-size: 10px;
 }
+
+/* ===== Fake App Screen ===== */
+QWidget#fakeAppScreen {
+    background-color: #14161a;
+}
+QFrame#fakeAppHeader {
+    background-color: #14161a;
+    border-bottom: 1px solid #22262c;
+}
+QPushButton#fakeAppBackBtn {
+    background-color: transparent;
+    border: none;
+    color: #eef0f2;
+    font-size: 18px;
+    padding: 4px 8px;
+}
+QPushButton#fakeAppBackBtn:pressed {
+    color: #8fd3c7;
+}
+QLabel#fakeAppTitle {
+    background-color: transparent;
+    color: #eef0f2;
+    font-size: 17px;
+    font-weight: 600;
+}
+QLabel#fakeAppNote {
+    background-color: transparent;
+    color: #9aa1ab;
+    font-size: 12px;
+    font-style: italic;
+}
+QFrame#fakeAppCard {
+    background-color: #1d2026;
+    border-radius: 10px;
+    padding: 18px;
+}
+QFrame#fakeAppCard QLabel {
+    background-color: transparent;
+    color: #c9cdd3;
+    font-size: 13px;
+}

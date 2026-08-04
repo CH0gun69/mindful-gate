@@ -1,21 +1,8 @@
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QLabel, QFrame
 from PySide6.QtCore import Qt, Signal
 
-from core.mock_data import TOP_APPS, PROTECTABLE_APPS
+from core.mock_data import TOP_APPS, PROTECTABLE_APPS, glyph_for
 from ui.widgets.app_icon import AppIcon
-
-# Decorative glyph + accent color per app, keyed off the names that already
-# exist in core/mock_data.py. Apps not listed here fall back to an initial
-# letter avatar, so nothing here needs to stay in sync with the mock data.
-APP_GLYPHS = {
-    "Instagram": ("📸", "#e1306c"),
-    "TikTok": ("🎵", "#111214"),
-    "X (Twitter)": ("𝕏", "#1d2026"),
-    "YouTube": ("▶", "#ff0000"),
-    "Messages": ("💬", "#34c759"),
-    "Facebook": ("📘", "#1877f2"),
-    "Reddit": ("👽", "#ff4500"),
-}
 
 # Always-available dock icons. Decorative only — tapping them is a no-op.
 DOCK_APPS = [
@@ -26,10 +13,6 @@ DOCK_APPS = [
 ]
 
 GRID_COLUMNS = 4
-
-
-def _glyph_for(name):
-    return APP_GLYPHS.get(name, (name[0].upper(), "#3a3f47"))
 
 
 def _build_app_list():
@@ -43,10 +26,11 @@ def _build_app_list():
 
 class PhoneHomeScreen(QWidget):
     """Mock phone lock/home screen — the entry point of the demo.
-    Tapping a protected app icon fires app_opened(name); everything else
-    (non-protected apps, dock icons) is inert."""
+    Tapping any app icon fires app_tapped(name, protected) — the caller
+    decides whether that means "show the interruption" (protected) or
+    "just open the fake app window" (not protected). Dock icons stay inert."""
 
-    app_opened = Signal(str)
+    app_tapped = Signal(str, bool)
 
     def __init__(self):
         super().__init__()
@@ -90,10 +74,10 @@ class PhoneHomeScreen(QWidget):
         grid.setVerticalSpacing(24)
 
         for index, (name, protected) in enumerate(_build_app_list()):
-            glyph, color = _glyph_for(name)
+            glyph, color = glyph_for(name)
             icon = AppIcon(name, glyph, color)
             icon.clicked.connect(
-                lambda checked=False, n=name, p=protected: self._on_app_tapped(n, p)
+                lambda checked=False, n=name, p=protected: self.app_tapped.emit(n, p)
             )
             row, col = divmod(index, GRID_COLUMNS)
             grid.addWidget(icon, row, col)
@@ -114,9 +98,3 @@ class PhoneHomeScreen(QWidget):
             layout.addWidget(icon)
 
         return dock
-
-    def _on_app_tapped(self, name, protected):
-        if protected:
-            self.app_opened.emit(name)
-        # Non-protected apps: no interruption. The button's own :pressed
-        # style (see styles.qss) is the only feedback needed for the mock.
