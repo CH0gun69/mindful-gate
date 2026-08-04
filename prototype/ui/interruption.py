@@ -13,7 +13,7 @@ class InterruptionScreen(QWidget):
 
     def _build_ui(self):
         root = QVBoxLayout(self)
-        root.setContentsMargins(48, 80, 48, 48)
+        root.setContentsMargins(48, 64, 48, 48)
         root.setSpacing(24)
         root.setAlignment(Qt.AlignTop)
 
@@ -33,17 +33,24 @@ class InterruptionScreen(QWidget):
         self.intention_label.setWordWrap(True)
         root.addWidget(self.intention_label)
 
-        root.addStretch()
+        root.addStretch(2)
 
-        continue_btn = QPushButton("Continue")
-        continue_btn.setObjectName("primaryBtn")
-        continue_btn.clicked.connect(lambda: self.continue_clicked.emit())
-        root.addWidget(continue_btn)
+        icon = QLabel("🧘")
+        icon.setObjectName("interruptIcon")
+        icon.setAlignment(Qt.AlignCenter)
+        root.addWidget(icon)
+
+        root.addStretch(3)
 
         back_btn = QPushButton("Go Back")
-        back_btn.setObjectName("secondaryBtn")
+        back_btn.setObjectName("primaryBtn")
         back_btn.clicked.connect(lambda: self.go_back_clicked.emit())
         root.addWidget(back_btn)
+
+        continue_btn = QPushButton("Continue Anyway")
+        continue_btn.setObjectName("secondaryBtn")
+        continue_btn.clicked.connect(lambda: self.continue_clicked.emit())
+        root.addWidget(continue_btn)
 
     def set_context(self, app_name: str, intention: str):
         self.app_label.setText(f"You opened {app_name}.")

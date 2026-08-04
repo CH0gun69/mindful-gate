@@ -28,10 +28,12 @@ QFrame#statCard {
     padding: 12px;
 }
 QLabel#statValue {
+    background: transparent;
     font-size: 20px;
     font-weight: 700;
 }
 QLabel#statLabel {
+    background: transparent;
     color: #9aa1ab;
     font-size: 12px;
 }
@@ -41,14 +43,17 @@ QFrame#appRow {
     padding: 8px;
 }
 QLabel#appName {
+    background: transparent;
     font-weight: 500;
 }
 QLabel#badge {
+    background: transparent;
     color: #8fd3c7;
     font-size: 11px;
     margin-left: 8px;
 }
 QLabel#appTime {
+    background: transparent;
     color: #9aa1ab;
 }
 QPushButton#primaryBtn {
@@ -85,6 +90,10 @@ QLabel#interruptTitle {
 QLabel#interruptQuestion {
     font-size: 30px;
     font-weight: 700;
+}
+QLabel#interruptIcon {
+    font-size: 64px;
+    background: transparent;
 }
 QLabel#intentionQuote {
     font-size: 16px;
