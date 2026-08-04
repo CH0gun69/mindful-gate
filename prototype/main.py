@@ -1,5 +1,6 @@
 import sys
 import os
+import argparse
 
 from PySide6.QtWidgets import QApplication, QMainWindow, QStackedWidget
 
@@ -9,8 +10,19 @@ from ui.intention_setup import IntentionSetupScreen
 from ui.interruption import InterruptionScreen
 from ui.insights import InsightsScreen
 from ui.fake_app_screen import FakeAppScreen
+from core.mock_data import DEFAULT_INTENTION
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# --screen names -> the screen class to build in debug mode.
+DEBUG_SCREENS = {
+    "phone_home": PhoneHomeScreen,
+    "dashboard": DashboardScreen,
+    "setup": IntentionSetupScreen,
+    "interruption": InterruptionScreen,
+    "insights": InsightsScreen,
+    "fake_app": FakeAppScreen,
+}
 
 
 class MainWindow(QMainWindow):
@@ -97,8 +109,52 @@ class MainWindow(QMainWindow):
         self.stack.setCurrentWidget(self.fake_app)
 
 
+class DebugWindow(QMainWindow):
+    """Launches a single screen in isolation for visual QA — same window
+    size/stylesheet as the real app, but skips the rest of the stack and
+    all navigation wiring."""
+
+    def __init__(self, screen_name, app_name):
+        super().__init__()
+        self.setWindowTitle(f"mindful-gate — DEBUG: {screen_name}")
+        self.resize(390, 780)
+
+        screen = DEBUG_SCREENS[screen_name]()
+
+        # Screens that need data to render meaningfully get populated with
+        # sensible mock values so they don't show up empty/broken.
+        if screen_name == "interruption":
+            screen.set_context(app_name, DEFAULT_INTENTION)
+        elif screen_name == "fake_app":
+            screen.set_app(app_name)
+
+        self.setCentralWidget(screen)
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="mindful-gate prototype")
+    parser.add_argument(
+        "--screen",
+        choices=sorted(DEBUG_SCREENS),
+        default=None,
+        help="Launch directly into a single screen for visual QA, instead of "
+             "the normal phone_home-first navigation flow.",
+    )
+    parser.add_argument(
+        "--app",
+        default="Instagram",
+        help="App name to populate the interruption/fake_app screens with "
+             "when used together with --screen (default: Instagram).",
+    )
+    return parser.parse_args()
+
+
 def main():
-    app = QApplication(sys.argv)
+    args = parse_args()
+
+    # Keep sys.argv[1:] (our own --screen/--app flags) away from QApplication,
+    # which otherwise tries to interpret unrecognized arguments itself.
+    app = QApplication(sys.argv[:1])
 
     with open(
         os.path.join(BASE_DIR, "ui", "styles.qss"),
@@ -107,7 +163,11 @@ def main():
     ) as f:
         app.setStyleSheet(f.read())
 
-    window = MainWindow()
+    if args.screen:
+        window = DebugWindow(args.screen, args.app)
+    else:
+        window = MainWindow()
+
     window.show()
     sys.exit(app.exec())
 
