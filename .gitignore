@@ -1,0 +1,14 @@
+# ===== Python / PySide6 =====
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+*.spec
+
+# ===== OS / Editor junk =====
+.DS_Store
+*.log
+.vscode/
+.idea/
