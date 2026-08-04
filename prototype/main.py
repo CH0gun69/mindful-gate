@@ -1,120 +1,14 @@
 import sys
+import os
+
 from PySide6.QtWidgets import QApplication, QMainWindow, QStackedWidget
 
-from screens.dashboard import DashboardScreen
-from screens.intention_setup import IntentionSetupScreen
-from screens.interruption import InterruptionScreen
-from screens.insights import InsightsScreen
+from ui.dashboard import DashboardScreen
+from ui.intention_setup import IntentionSetupScreen
+from ui.interruption import InterruptionScreen
+from ui.insights import InsightsScreen
 
-STYLESHEET = """
-QWidget {
-    background-color: #14161a;
-    color: #eef0f2;
-    font-family: "Segoe UI", "SF Pro Text", sans-serif;
-}
-QLabel#screenTitle {
-    font-size: 24px;
-    font-weight: 600;
-}
-QLabel#bigScreenTime {
-    font-size: 44px;
-    font-weight: 700;
-    color: #8fd3c7;
-}
-QLabel#caption {
-    color: #9aa1ab;
-    font-size: 13px;
-}
-QLabel#sectionLabel {
-    font-size: 14px;
-    font-weight: 600;
-    color: #c9cdd3;
-    margin-top: 8px;
-}
-QFrame#statCard {
-    background-color: #1d2026;
-    border-radius: 10px;
-    padding: 12px;
-}
-QLabel#statValue {
-    font-size: 20px;
-    font-weight: 700;
-}
-QLabel#statLabel {
-    color: #9aa1ab;
-    font-size: 12px;
-}
-QFrame#appRow {
-    background-color: #1d2026;
-    border-radius: 8px;
-    padding: 8px;
-}
-QLabel#appName {
-    font-weight: 500;
-}
-QLabel#badge {
-    color: #8fd3c7;
-    font-size: 11px;
-    margin-left: 8px;
-}
-QLabel#appTime {
-    color: #9aa1ab;
-}
-QPushButton#primaryBtn {
-    background-color: #8fd3c7;
-    color: #0e1012;
-    border-radius: 10px;
-    padding: 12px;
-    font-weight: 600;
-    font-size: 14px;
-}
-QPushButton#primaryBtn:hover {
-    background-color: #a3ded3;
-}
-QPushButton#secondaryBtn {
-    background-color: transparent;
-    color: #eef0f2;
-    border: 1px solid #3a3f47;
-    border-radius: 10px;
-    padding: 12px;
-    font-size: 14px;
-}
-QPushButton#linkBtn, QPushButton#simulateBtn {
-    background-color: transparent;
-    color: #9aa1ab;
-    border: none;
-    padding: 8px;
-    font-size: 13px;
-    text-decoration: underline;
-}
-QLabel#interruptTitle {
-    font-size: 18px;
-    color: #9aa1ab;
-}
-QLabel#interruptQuestion {
-    font-size: 30px;
-    font-weight: 700;
-}
-QLabel#intentionQuote {
-    font-size: 16px;
-    font-style: italic;
-    color: #8fd3c7;
-    padding: 16px;
-    background-color: #1d2026;
-    border-radius: 10px;
-}
-QCheckBox {
-    font-size: 14px;
-    padding: 4px;
-}
-QLineEdit#intentionInput {
-    background-color: #1d2026;
-    border: 1px solid #3a3f47;
-    border-radius: 8px;
-    padding: 10px;
-    font-size: 14px;
-}
-"""
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 class MainWindow(QMainWindow):
@@ -165,7 +59,14 @@ class MainWindow(QMainWindow):
 
 def main():
     app = QApplication(sys.argv)
-    app.setStyleSheet(STYLESHEET)
+
+    with open(
+        os.path.join(BASE_DIR, "ui", "styles.qss"),
+        "r",
+        encoding="utf-8"
+    ) as f:
+        app.setStyleSheet(f.read())
+
     window = MainWindow()
     window.show()
     sys.exit(app.exec())

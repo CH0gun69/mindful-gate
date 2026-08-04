@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QFrame
 from PySide6.QtCore import Signal
 
-from data.mock_data import INSIGHTS
+from core.mock_data import INSIGHTS
 
 
 class InsightsScreen(QWidget):

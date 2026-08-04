@@ -3,7 +3,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Signal
 
-from data.mock_data import PROTECTABLE_APPS, DEFAULT_INTENTION
+from core.mock_data import PROTECTABLE_APPS, DEFAULT_INTENTION
 
 
 class IntentionSetupScreen(QWidget):

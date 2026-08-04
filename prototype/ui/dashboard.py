@@ -1,39 +1,11 @@
 from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QFrame
+    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton
 )
 from PySide6.QtCore import Qt, Signal
 
-from data.mock_data import SCREEN_TIME_TODAY, UNLOCKS_TODAY, NOTIFICATIONS_TODAY, TOP_APPS
-
-
-class StatCard(QFrame):
-    def __init__(self, label, value):
-        super().__init__()
-        self.setObjectName("statCard")
-        layout = QVBoxLayout(self)
-        value_lbl = QLabel(value)
-        value_lbl.setObjectName("statValue")
-        label_lbl = QLabel(label)
-        label_lbl.setObjectName("statLabel")
-        layout.addWidget(value_lbl)
-        layout.addWidget(label_lbl)
-
-
-class AppRow(QFrame):
-    def __init__(self, app):
-        super().__init__()
-        self.setObjectName("appRow")
-        layout = QHBoxLayout(self)
-        name = QLabel(app["name"])
-        name.setObjectName("appName")
-        badge = QLabel("Protected" if app["protected"] else "")
-        badge.setObjectName("badge")
-        time = QLabel(app["time"])
-        time.setObjectName("appTime")
-        layout.addWidget(name)
-        layout.addWidget(badge)
-        layout.addStretch()
-        layout.addWidget(time)
+from core.mock_data import SCREEN_TIME_TODAY, UNLOCKS_TODAY, NOTIFICATIONS_TODAY, TOP_APPS
+from ui.widgets.stat_card import StatCard
+from ui.widgets.app_row import AppRow
 
 
 class DashboardScreen(QWidget):
