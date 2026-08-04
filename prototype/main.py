@@ -3,6 +3,7 @@ import os
 
 from PySide6.QtWidgets import QApplication, QMainWindow, QStackedWidget
 
+from ui.phone_home import PhoneHomeScreen
 from ui.dashboard import DashboardScreen
 from ui.intention_setup import IntentionSetupScreen
 from ui.interruption import InterruptionScreen
@@ -23,21 +24,25 @@ class MainWindow(QMainWindow):
         self.current_intention = "Only reply to messages"
         self.current_app = "Instagram"
 
+        self.phone_home = PhoneHomeScreen()
         self.dashboard = DashboardScreen()
         self.setup = IntentionSetupScreen()
         self.interruption = InterruptionScreen()
         self.insights = InsightsScreen()
 
-        for screen in (self.dashboard, self.setup, self.interruption, self.insights):
+        for screen in (self.phone_home, self.dashboard, self.setup, self.interruption, self.insights):
             self.stack.addWidget(screen)
 
         self._wire_navigation()
-        self.stack.setCurrentWidget(self.dashboard)
+        self.stack.setCurrentWidget(self.phone_home)
 
     def _wire_navigation(self):
+        self.phone_home.app_opened.connect(self._trigger_interruption)
+
         self.dashboard.go_to_setup.connect(lambda: self.stack.setCurrentWidget(self.setup))
         self.dashboard.go_to_insights.connect(lambda: self.stack.setCurrentWidget(self.insights))
         self.dashboard.simulate_open.connect(self._trigger_interruption)
+        self.dashboard.go_home.connect(lambda: self.stack.setCurrentWidget(self.phone_home))
 
         self.setup.go_back.connect(lambda: self.stack.setCurrentWidget(self.dashboard))
         self.setup.activated.connect(self._on_intention_activated)

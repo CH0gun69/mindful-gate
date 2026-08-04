@@ -15,6 +15,7 @@ Goal: get the whole team seeing and agreeing on the flow before touching Swift.
 - [ ] Interruption screen w/ "Simulate opening Instagram" button
 - [ ] Basic navigation between all screens
 - [ ] Team sign-off on flow and copy
+- [x] Phone home screen (mock lock screen entry point) — *scope addition, not in original plan*
 
 **Not in scope for Phase 1:** real usage tracking, persistence, animations/polish.
 

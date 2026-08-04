@@ -105,3 +105,53 @@ QLineEdit#intentionInput {
     padding: 10px;
     font-size: 14px;
 }
+
+/* ===== Phone Home Screen ===== */
+QWidget#phoneHomeScreen {
+    background-color: #14161a;
+}
+QFrame#phoneStatusBar {
+    background-color: #14161a;
+    border-bottom: 1px solid #22262c;
+}
+QLabel#statusBarTime {
+    background-color: transparent;
+    color: #eef0f2;
+    font-size: 15px;
+    font-weight: 600;
+}
+QLabel#statusBarIcons {
+    background-color: transparent;
+    color: #9aa1ab;
+    font-size: 12px;
+}
+QWidget#phoneHomeGrid {
+    background-color: transparent;
+}
+QPushButton#appIcon {
+    background-color: transparent;
+    border: none;
+    padding: 0px;
+}
+QPushButton#appIcon:pressed {
+    background-color: rgba(143, 211, 199, 0.15);
+    border-radius: 12px;
+}
+QLabel#appIconLabel {
+    background-color: transparent;
+    color: #c9cdd3;
+    font-size: 11px;
+}
+QFrame#phoneDock {
+    background-color: #1d2026;
+    border-radius: 20px;
+}
+QPushButton#dockIcon {
+    background-color: transparent;
+    border: none;
+    padding: 0px;
+}
+QPushButton#dockIcon QLabel#appIconLabel {
+    color: #9aa1ab;
+    font-size: 10px;
+}

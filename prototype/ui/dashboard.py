@@ -11,6 +11,7 @@ from ui.widgets.app_row import AppRow
 class DashboardScreen(QWidget):
     go_to_setup = Signal()
     go_to_insights = Signal()
+    go_home = Signal()
     simulate_open = Signal(str)
 
     def __init__(self):
@@ -61,6 +62,11 @@ class DashboardScreen(QWidget):
         insights_btn.setObjectName("linkBtn")
         insights_btn.clicked.connect(lambda: self.go_to_insights.emit())
         root.addWidget(insights_btn)
+
+        home_btn = QPushButton("⌂ Home")
+        home_btn.setObjectName("linkBtn")
+        home_btn.clicked.connect(lambda: self.go_home.emit())
+        root.addWidget(home_btn)
 
     def set_focus_active(self, active: bool, intention: str = ""):
         self.focus_active = active
