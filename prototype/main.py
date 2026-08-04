@@ -59,6 +59,7 @@ class MainWindow(QMainWindow):
 
     def _wire_navigation(self):
         self.phone_home.app_tapped.connect(self._on_phone_home_app_tapped)
+        self.phone_home.open_dashboard.connect(lambda: self.stack.setCurrentWidget(self.dashboard))
 
         self.dashboard.go_to_setup.connect(lambda: self.stack.setCurrentWidget(self.setup))
         self.dashboard.go_to_insights.connect(lambda: self.stack.setCurrentWidget(self.insights))

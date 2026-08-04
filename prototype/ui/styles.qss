@@ -151,6 +151,43 @@ QLabel#appIconLabel {
     color: #c9cdd3;
     font-size: 11px;
 }
+QWidget#phoneHomeScreenTimeWrap {
+    background-color: transparent;
+}
+QPushButton#screenTimeWidget {
+    background-color: #1d2026;
+    border: none;
+    border-radius: 14px;
+    text-align: left;
+}
+QPushButton#screenTimeWidget:pressed {
+    background-color: #23272f;
+}
+QLabel#screenTimeValue {
+    background: transparent;
+    color: #8fd3c7;
+    font-size: 22px;
+    font-weight: 700;
+}
+QLabel#screenTimeCaption {
+    background: transparent;
+    color: #9aa1ab;
+    font-size: 12px;
+}
+QFrame#screenTimeDivider {
+    background-color: #3a3f47;
+}
+QLabel#screenTimeUnlocksValue {
+    background: transparent;
+    color: #eef0f2;
+    font-size: 18px;
+    font-weight: 700;
+}
+QLabel#screenTimeUnlocksCaption {
+    background: transparent;
+    color: #9aa1ab;
+    font-size: 11px;
+}
 QFrame#phoneDock {
     background-color: #1d2026;
     border-radius: 20px;

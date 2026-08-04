@@ -3,6 +3,7 @@ from PySide6.QtCore import Qt, Signal
 
 from core.mock_data import TOP_APPS, PROTECTABLE_APPS, glyph_for
 from ui.widgets.app_icon import AppIcon
+from ui.widgets.screen_time_widget import ScreenTimeWidget
 
 # Always-available dock icons. Decorative only — tapping them is a no-op.
 DOCK_APPS = [
@@ -31,6 +32,7 @@ class PhoneHomeScreen(QWidget):
     "just open the fake app window" (not protected). Dock icons stay inert."""
 
     app_tapped = Signal(str, bool)
+    open_dashboard = Signal()
 
     def __init__(self):
         super().__init__()
@@ -44,6 +46,7 @@ class PhoneHomeScreen(QWidget):
 
         root.addWidget(self._build_status_bar())
         root.addWidget(self._build_app_grid())
+        root.addWidget(self._build_screen_time_widget())
         root.addStretch()
         root.addWidget(self._build_dock())
 
@@ -81,6 +84,20 @@ class PhoneHomeScreen(QWidget):
             )
             row, col = divmod(index, GRID_COLUMNS)
             grid.addWidget(icon, row, col)
+
+        return wrap
+
+    def _build_screen_time_widget(self):
+        wrap = QWidget()
+        wrap.setObjectName("phoneHomeScreenTimeWrap")
+        layout = QVBoxLayout(wrap)
+        # Same 20px horizontal inset as the app grid above it, so it lines
+        # up instead of feeling bolted on.
+        layout.setContentsMargins(20, 8, 20, 8)
+
+        widget = ScreenTimeWidget()
+        widget.clicked.connect(lambda: self.open_dashboard.emit())
+        layout.addWidget(widget)
 
         return wrap
 
