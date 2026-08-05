@@ -78,6 +78,7 @@ class MainWindow(QMainWindow):
 
     def _on_intention_activated(self, intention, protected_apps):
         self.current_intention = intention
+        self.phone_home.set_protected_apps(protected_apps)
         self.dashboard.set_focus_active(True, intention)
         self.stack.setCurrentWidget(self.dashboard)
 

@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QLabel, QFrame
 from PySide6.QtCore import Qt, Signal
 
-from core.mock_data import TOP_APPS, PROTECTABLE_APPS, glyph_for
+from core.mock_data import TOP_APPS, PROTECTABLE_APPS, DEFAULT_PROTECTED_APPS, glyph_for
 from ui.widgets.app_icon import AppIcon
 from ui.widgets.screen_time_widget import ScreenTimeWidget
 
@@ -16,28 +16,43 @@ DOCK_APPS = [
 GRID_COLUMNS = 4
 
 
-def _build_app_list():
-    """Merge TOP_APPS + PROTECTABLE_APPS into one (name, protected) list,
-    without hardcoding a separate app roster."""
-    apps = {app["name"]: app["protected"] for app in TOP_APPS}
+def _build_app_roster():
+    """Merge TOP_APPS + PROTECTABLE_APPS into one ordered name list, without
+    hardcoding a separate app roster. Protected/not-protected is decided
+    separately (see PhoneHomeScreen._protected) so it can change at runtime
+    based on what's actually selected in Setup."""
+    names = [app["name"] for app in TOP_APPS]
     for name in PROTECTABLE_APPS:
-        apps.setdefault(name, True)
-    return list(apps.items())
+        if name not in names:
+            names.append(name)
+    return names
 
 
 class PhoneHomeScreen(QWidget):
     """Mock phone lock/home screen — the entry point of the demo.
     Tapping any app icon fires app_tapped(name, protected) — the caller
     decides whether that means "show the interruption" (protected) or
-    "just open the fake app window" (not protected). Dock icons stay inert."""
+    "just open the fake app window" (not protected). Dock icons stay inert.
+
+    Which apps count as "protected" is runtime state (see set_protected_apps),
+    driven by whatever was last checked on the Setup screen — it defaults to
+    DEFAULT_PROTECTED_APPS before Setup has ever been visited."""
 
     app_tapped = Signal(str, bool)
     open_dashboard = Signal()
 
-    def __init__(self):
+    def __init__(self, protected_apps=None):
         super().__init__()
         self.setObjectName("phoneHomeScreen")
+        self._protected = set(
+            DEFAULT_PROTECTED_APPS if protected_apps is None else protected_apps
+        )
         self._build_ui()
+
+    def set_protected_apps(self, protected_apps):
+        """Update which apps trigger the interruption screen when tapped,
+        e.g. after the user activates a new selection on the Setup screen."""
+        self._protected = set(protected_apps)
 
     def _build_ui(self):
         root = QVBoxLayout(self)
@@ -76,11 +91,11 @@ class PhoneHomeScreen(QWidget):
         grid.setHorizontalSpacing(12)
         grid.setVerticalSpacing(24)
 
-        for index, (name, protected) in enumerate(_build_app_list()):
+        for index, name in enumerate(_build_app_roster()):
             glyph, color = glyph_for(name)
             icon = AppIcon(name, glyph, color)
             icon.clicked.connect(
-                lambda checked=False, n=name, p=protected: self.app_tapped.emit(n, p)
+                lambda checked=False, n=name: self.app_tapped.emit(n, n in self._protected)
             )
             row, col = divmod(index, GRID_COLUMNS)
             grid.addWidget(icon, row, col)

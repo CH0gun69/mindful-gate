@@ -17,6 +17,12 @@ TOP_APPS = [
 
 PROTECTABLE_APPS = ["Instagram", "TikTok", "X (Twitter)", "YouTube", "Facebook", "Reddit"]
 
+# Which of PROTECTABLE_APPS start out checked/protected before the user has
+# ever visited Setup — single source of truth shared by IntentionSetupScreen
+# (checkbox defaults) and PhoneHomeScreen (initial interrupt behavior), so
+# they can't drift out of sync with each other.
+DEFAULT_PROTECTED_APPS = ["Instagram", "TikTok", "X (Twitter)"]
+
 INSIGHTS = {
     "intentions_kept": 12,
     "intentions_total": 18,

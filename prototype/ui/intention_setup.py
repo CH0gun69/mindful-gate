@@ -3,7 +3,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Signal
 
-from core.mock_data import PROTECTABLE_APPS, DEFAULT_INTENTION
+from core.mock_data import PROTECTABLE_APPS, DEFAULT_INTENTION, DEFAULT_PROTECTED_APPS
 
 
 class IntentionSetupScreen(QWidget):
@@ -35,7 +35,7 @@ class IntentionSetupScreen(QWidget):
 
         for app in PROTECTABLE_APPS:
             cb = QCheckBox(app)
-            cb.setChecked(app in ("Instagram", "TikTok", "X (Twitter)"))
+            cb.setChecked(app in DEFAULT_PROTECTED_APPS)
             self.checkboxes[app] = cb
             root.addWidget(cb)
 
