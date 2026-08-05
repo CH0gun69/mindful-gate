@@ -10,7 +10,7 @@ from ui.intention_setup import IntentionSetupScreen
 from ui.interruption import InterruptionScreen
 from ui.insights import InsightsScreen
 from ui.fake_app_screen import FakeAppScreen
-from core.mock_data import DEFAULT_INTENTION
+from core.mock_data import DEFAULT_INTENTION, DEFAULT_PROTECTED_APPS
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -40,9 +40,13 @@ class MainWindow(QMainWindow):
         # where to return to: "phone_home" -> fake app screen / phone home,
         # "dashboard" -> back to the Dashboard (existing simulate-button flow).
         self._interruption_source = "dashboard"
+        # Single source of truth for which apps currently interrupt — handed
+        # to both Phone Home (real tap behavior) and Dashboard (badges +
+        # Simulate button) so neither can drift out of sync with Setup.
+        self.protected_apps = set(DEFAULT_PROTECTED_APPS)
 
-        self.phone_home = PhoneHomeScreen()
-        self.dashboard = DashboardScreen()
+        self.phone_home = PhoneHomeScreen(protected_apps=self.protected_apps)
+        self.dashboard = DashboardScreen(protected_apps=self.protected_apps)
         self.setup = IntentionSetupScreen()
         self.interruption = InterruptionScreen()
         self.insights = InsightsScreen()
@@ -78,7 +82,9 @@ class MainWindow(QMainWindow):
 
     def _on_intention_activated(self, intention, protected_apps):
         self.current_intention = intention
-        self.phone_home.set_protected_apps(protected_apps)
+        self.protected_apps = set(protected_apps)
+        self.phone_home.set_protected_apps(self.protected_apps)
+        self.dashboard.set_protected_apps(self.protected_apps)
         self.dashboard.set_focus_active(True, intention)
         self.stack.setCurrentWidget(self.dashboard)
 
