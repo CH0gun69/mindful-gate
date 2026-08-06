@@ -27,6 +27,11 @@ QFrame#statCard {
     border-radius: 10px;
     padding: 12px;
 }
+QFrame#screenTimeCard {
+    background-color: #1d2026;
+    border-radius: 14px;
+    padding: 18px;
+}
 QLabel#statValue {
     background: transparent;
     font-size: 20px;

@@ -49,3 +49,27 @@ APP_GLYPHS = {
 
 def glyph_for(name):
     return APP_GLYPHS.get(name, (name[0].upper(), "#3a3f47"))
+
+
+def _parse_minutes(time_str):
+    """Parse a mock 'Xh Ym' / 'Ym' time string (as used in TOP_APPS) into
+    total minutes."""
+    hours = 0
+    minutes = 0
+    for part in time_str.split():
+        if part.endswith("h"):
+            hours = int(part[:-1])
+        elif part.endswith("m"):
+            minutes = int(part[:-1])
+    return hours * 60 + minutes
+
+
+def usage_breakdown():
+    """(name, minutes, time_str, color) tuples derived from TOP_APPS, for
+    Dashboard's screen-time ring chart + legend -- deliberately not a
+    separate hardcoded dataset, so it can't drift out of sync with TOP_APPS
+    (their minutes already sum to exactly SCREEN_TIME_TODAY)."""
+    return [
+        (app["name"], _parse_minutes(app["time"]), app["time"], glyph_for(app["name"])[1])
+        for app in TOP_APPS
+    ]

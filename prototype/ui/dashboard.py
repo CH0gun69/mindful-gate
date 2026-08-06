@@ -1,14 +1,15 @@
 from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton
+    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QFrame
 )
 from PySide6.QtCore import Qt, Signal
 
 from core.mock_data import (
     SCREEN_TIME_TODAY, UNLOCKS_TODAY, NOTIFICATIONS_TODAY, TOP_APPS,
-    DEFAULT_PROTECTED_APPS,
+    DEFAULT_PROTECTED_APPS, usage_breakdown,
 )
 from ui.widgets.stat_card import StatCard
 from ui.widgets.app_row import AppRow
+from ui.widgets.usage_ring_chart import UsageRingChart
 
 SIMULATED_APP = "Instagram"
 
@@ -38,12 +39,7 @@ class DashboardScreen(QWidget):
         title.setObjectName("screenTitle")
         root.addWidget(title)
 
-        screen_time = QLabel(SCREEN_TIME_TODAY)
-        screen_time.setObjectName("bigScreenTime")
-        caption = QLabel("Screen time today")
-        caption.setObjectName("caption")
-        root.addWidget(screen_time)
-        root.addWidget(caption)
+        root.addWidget(self._build_screen_time_card())
 
         stats_row = QHBoxLayout()
         stats_row.addWidget(StatCard("Unlocks", str(UNLOCKS_TODAY)))
@@ -79,6 +75,77 @@ class DashboardScreen(QWidget):
         home_btn.setObjectName("linkBtn")
         home_btn.clicked.connect(lambda: self.go_home.emit())
         root.addWidget(home_btn)
+
+    def _build_screen_time_card(self):
+        """Screen time today, as a value + a ring chart showing the
+        proportion of time per app, with a color-matched legend list below.
+        The ring's data comes straight from usage_breakdown() (derived from
+        TOP_APPS) rather than a separate hardcoded dataset."""
+        card = QFrame()
+        card.setObjectName("screenTimeCard")
+        card_layout = QVBoxLayout(card)
+        card_layout.setSpacing(16)
+
+        top_row = QHBoxLayout()
+        top_row.setSpacing(16)
+
+        text_block = QVBoxLayout()
+        text_block.setSpacing(2)
+        screen_time = QLabel(SCREEN_TIME_TODAY)
+        screen_time.setObjectName("bigScreenTime")
+        caption = QLabel("Screen time today")
+        caption.setObjectName("caption")
+        text_block.addWidget(screen_time)
+        text_block.addWidget(caption)
+        text_block.addStretch()
+        top_row.addLayout(text_block)
+        top_row.addStretch()
+
+        breakdown = usage_breakdown()
+        self.ring_chart = UsageRingChart(
+            [(name, minutes, color) for name, minutes, _, color in breakdown]
+        )
+        top_row.addWidget(self.ring_chart)
+        card_layout.addLayout(top_row)
+
+        legend = QVBoxLayout()
+        legend.setSpacing(10)
+        for name, _, time_str, color in breakdown:
+            legend.addWidget(self._build_legend_row(name, time_str, color))
+        card_layout.addLayout(legend)
+
+        return card
+
+    def _build_legend_row(self, name, time_str, color):
+        row = QWidget()
+        layout = QHBoxLayout(row)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(10)
+
+        dot = QLabel()
+        dot.setObjectName("usageLegendDot")
+        dot.setFixedSize(10, 10)
+        # Per-instance color, same reasoning as AppIcon/FakeAppScreen's
+        # avatar styling elsewhere in this codebase -- the color varies per
+        # app so it can't live in the shared stylesheet. The border reuses
+        # the palette's existing #3a3f47 so the dot stays visible even for
+        # apps whose own color (e.g. X (Twitter)) matches a card background.
+        dot.setStyleSheet(
+            f"background-color: {color}; border-radius: 5px; "
+            "border: 1px solid #3a3f47;"
+        )
+        layout.addWidget(dot)
+
+        name_lbl = QLabel(name)
+        name_lbl.setObjectName("appName")
+        layout.addWidget(name_lbl)
+        layout.addStretch()
+
+        time_lbl = QLabel(time_str)
+        time_lbl.setObjectName("appTime")
+        layout.addWidget(time_lbl)
+
+        return row
 
     def set_focus_active(self, active: bool, intention: str = ""):
         self.focus_active = active
