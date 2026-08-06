@@ -112,6 +112,29 @@ def usage_breakdown():
     ]
 
 
+# Ambient 2-state color tinting for Dashboard's screen-time display -- no
+# numeric score, no "Attention"/"Warning" label anywhere, just a color
+# shift on elements that already exist (the big time value + the ring's
+# overall tone). 240 min (4h) chosen because SCREEN_TIME_TODAY (4h 32m)
+# already crosses it, so both states are demo-visible without faking data.
+AMBIENT_THRESHOLD_MINUTES = 240
+AMBIENT_COLOR_NORMAL = "#8fd3c7"  # existing teal accent, unchanged look below the threshold
+AMBIENT_COLOR_HIGH = "#e0a96d"  # soft amber, not red -- ambient, not alarming
+
+
+def is_high_usage():
+    """Whether SCREEN_TIME_TODAY is at/above AMBIENT_THRESHOLD_MINUTES."""
+    return _parse_minutes(SCREEN_TIME_TODAY) >= AMBIENT_THRESHOLD_MINUTES
+
+
+def usage_color(is_high: bool) -> str:
+    """AMBIENT_COLOR_HIGH or AMBIENT_COLOR_NORMAL depending on state --
+    kept as a plain boolean-in function (rather than baking is_high_usage()
+    into it) so callers/tests can drive either state directly without
+    needing to fake SCREEN_TIME_TODAY."""
+    return AMBIENT_COLOR_HIGH if is_high else AMBIENT_COLOR_NORMAL
+
+
 # ===== Fake App mock content =====
 # Local CC0 placeholder photos (Picsum Photos, picsum.photos -- static files
 # downloaded once, not fetched at runtime, so this works fully offline). No

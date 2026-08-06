@@ -5,7 +5,7 @@ from PySide6.QtCore import Qt, Signal
 
 from core.mock_data import (
     SCREEN_TIME_TODAY, UNLOCKS_TODAY, NOTIFICATIONS_TODAY,
-    DEFAULT_PROTECTED_APPS, usage_breakdown,
+    DEFAULT_PROTECTED_APPS, usage_breakdown, is_high_usage, usage_color,
 )
 from ui.widgets.stat_card import StatCard
 from ui.widgets.usage_ring_chart import UsageRingChart
@@ -74,10 +74,17 @@ class DashboardScreen(QWidget):
         top_row = QHBoxLayout()
         top_row.setSpacing(16)
 
+        # Ambient 2-state tint (no numeric score, no warning text) -- see
+        # core.mock_data.usage_color()/is_high_usage(). Applied directly on
+        # this specific label rather than through a QSS selector, since it
+        # depends on runtime mock data, not a fixed style class.
+        tint = usage_color(is_high_usage())
+
         text_block = QVBoxLayout()
         text_block.setSpacing(2)
         screen_time = QLabel(SCREEN_TIME_TODAY)
         screen_time.setObjectName("bigScreenTime")
+        screen_time.setStyleSheet(f"color: {tint};")
         caption = QLabel("Screen time today")
         caption.setObjectName("caption")
         text_block.addWidget(screen_time)
@@ -88,7 +95,8 @@ class DashboardScreen(QWidget):
 
         self._breakdown = usage_breakdown()
         self.ring_chart = UsageRingChart(
-            [(name, minutes, color) for name, minutes, _, color in self._breakdown]
+            [(name, minutes, color) for name, minutes, _, color in self._breakdown],
+            border_color=tint,
         )
         top_row.addWidget(self.ring_chart)
         card_layout.addLayout(top_row)

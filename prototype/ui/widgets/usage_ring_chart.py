@@ -4,10 +4,15 @@ from PySide6.QtCore import QRectF, QSize
 
 RING_THICKNESS = 16
 GAP_DEGREES = 3  # small visual gap between adjacent segments
-# Reuses the palette's existing border/divider color (see styles.qss) as a
-# thin outline on every segment -- not a new color. Needed because at least
-# one app's own accent color (X (Twitter) -> #1d2026) is identical to this
-# card's background; without an outline that segment would be invisible.
+# Default outline color, reusing the palette's existing border/divider
+# color (see styles.qss) -- needed because at least one app's own accent
+# color (X (Twitter) -> #1d2026) is identical to this card's background;
+# without an outline that segment would be invisible. Callers that want
+# the ring's overall tone to reflect something (e.g. Dashboard's ambient
+# usage-level tinting) can override it via border_color/set_border_color()
+# -- it still does its original contrast job either way, since both
+# ambient tint colors are light enough to stay visible against any
+# segment's own dark fill.
 BORDER_COLOR = "#3a3f47"
 
 
@@ -17,17 +22,24 @@ class UsageRingChart(QWidget):
     arced segments is enough for this prototype.
 
     segments: list of (label, minutes, color_hex) tuples. Drawn starting
-    from 12 o'clock, clockwise, in the order given.
+    from 12 o'clock, clockwise, in the order given. Individual segment
+    fill colors always come from `segments` and are never touched by
+    border_color -- that only affects the shared outline/overall tone.
     """
 
-    def __init__(self, segments=None, diameter=112, parent=None):
+    def __init__(self, segments=None, diameter=112, border_color=BORDER_COLOR, parent=None):
         super().__init__(parent)
         self._segments = segments or []
         self._diameter = diameter
+        self._border_color = border_color
         self.setFixedSize(diameter, diameter)
 
     def set_segments(self, segments):
         self._segments = segments
+        self.update()
+
+    def set_border_color(self, color):
+        self._border_color = color
         self.update()
 
     def sizeHint(self):
@@ -53,7 +65,7 @@ class UsageRingChart(QWidget):
             self.width() - 2 * inner_margin, self.height() - 2 * inner_margin,
         )
 
-        border_pen = QPen(QColor(BORDER_COLOR))
+        border_pen = QPen(QColor(self._border_color))
         border_pen.setWidthF(1)
         painter.setPen(border_pen)
 
