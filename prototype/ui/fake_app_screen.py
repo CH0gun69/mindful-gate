@@ -6,7 +6,7 @@ from PySide6.QtCore import Qt, Signal
 
 from core.mock_data import (
     glyph_for, icon_path_for, style_for,
-    mock_image_path, mock_image_index_for,
+    mock_image_path, mock_image_index_for, feed_actions_for,
     MOCK_FEED_POSTS, MOCK_SHORTS_CAPTION, MOCK_CONTACTS, MOCK_CHAT,
 )
 from ui.widgets.svg_icon import white_svg_pixmap
@@ -118,18 +118,36 @@ class FakeAppScreen(QWidget):
 
         for i, (username, caption) in enumerate(MOCK_FEED_POSTS):
             image_index = mock_image_index_for(name, offset=i)
-            layout.addWidget(self._build_feed_post(username, caption, color, image_index))
+            layout.addWidget(self._build_feed_post(username, caption, color, image_index, name))
 
         layout.addStretch()
         return wrap
 
-    def _build_feed_post(self, username, caption, color, image_index):
+    def _build_feed_post(self, username, caption, color, image_index, app_name):
+        """One post card. Reddit's config asks for a genuinely different
+        layout (a vertical vote rail on the left instead of a bottom action
+        row, matching how Reddit actually looks) rather than just different
+        icons, so it branches to a distinct structure here -- everything
+        else (header/photo/caption) is still built by the same shared
+        helpers either way."""
+        actions_config = feed_actions_for(app_name)
+        if actions_config["layout"] == "vote":
+            return self._build_reddit_post(username, caption, color, image_index, actions_config)
+
         card = QFrame()
         card.setObjectName("feedPostCard")
         v = QVBoxLayout(card)
         v.setContentsMargins(0, 0, 0, 0)
         v.setSpacing(0)
 
+        v.addLayout(self._build_feed_header(username, color))
+        v.addWidget(self._build_feed_photo(image_index))
+        v.addWidget(self._build_feed_caption(username, caption))
+        v.addWidget(self._build_feed_actions(actions_config))
+
+        return card
+
+    def _build_feed_header(self, username, color):
         header = QHBoxLayout()
         header.setContentsMargins(10, 10, 10, 8)
         header.setSpacing(8)
@@ -147,8 +165,9 @@ class FakeAppScreen(QWidget):
         uname.setObjectName("feedUsername")
         header.addWidget(uname)
         header.addStretch()
-        v.addLayout(header)
+        return header
 
+    def _build_feed_photo(self, image_index):
         photo = QLabel()
         photo.setObjectName("feedPhoto")
         photo.setFixedHeight(160)
@@ -156,15 +175,123 @@ class FakeAppScreen(QWidget):
         image_path = mock_image_path(image_index)
         if image_path:
             photo.setPixmap(cover_pixmap(image_path, 400, 160))
-        v.addWidget(photo)
+        return photo
 
+    def _build_feed_caption(self, username, caption):
         cap = QLabel(f"{username} {caption}")
         cap.setObjectName("feedCaption")
         cap.setWordWrap(True)
         cap.setContentsMargins(10, 8, 10, 10)
-        v.addWidget(cap)
+        return cap
+
+    # --- action-button row: one shared entry point, branching on layout ---
+
+    def _build_feed_actions(self, config):
+        if config["layout"] == "labeled":
+            return self._build_actions_labeled(config["buttons"])
+        return self._build_actions_icons(config["buttons"], small=config.get("size") == "small")
+
+    def _build_actions_icons(self, buttons, small=False):
+        """Instagram/X's style: evenly-spaced icon-only buttons, no labels."""
+        row = QFrame()
+        row.setObjectName("feedActionsIcons")
+        layout = QHBoxLayout(row)
+        layout.setContentsMargins(10, 4, 10, 8)
+        layout.setSpacing(0)
+
+        layout.addStretch()
+        for btn_cfg in buttons:
+            btn = self._make_action_button(
+                btn_cfg["icon"], "feedActionIconSmall" if small else "feedActionIcon",
+                btn_cfg.get("flash"),
+            )
+            layout.addWidget(btn)
+            layout.addStretch()
+
+        return row
+
+    def _build_actions_labeled(self, buttons):
+        """Facebook's style: full-width text-label buttons, thin dividers
+        between them, one shared icon+label per button."""
+        row = QFrame()
+        row.setObjectName("feedActionsLabeled")
+        layout = QHBoxLayout(row)
+        layout.setContentsMargins(0, 2, 0, 2)
+        layout.setSpacing(0)
+
+        for i, btn_cfg in enumerate(buttons):
+            if i > 0:
+                divider = QFrame()
+                divider.setObjectName("feedActionDivider")
+                divider.setFixedWidth(1)
+                layout.addWidget(divider)
+            btn = self._make_action_button(
+                f"{btn_cfg['icon']}  {btn_cfg['label']}", "feedActionLabeled",
+                btn_cfg.get("flash"),
+            )
+            layout.addWidget(btn, 1)
+
+        return row
+
+    def _build_reddit_post(self, username, caption, color, image_index, config):
+        """Reddit's post shape: a vertical vote cluster on the left instead
+        of a bottom action row, with comment count shown separately below
+        the caption -- matches how Reddit's real layout actually differs
+        from the other three, not just its colors/icons."""
+        card = QFrame()
+        card.setObjectName("feedPostCard")
+        h = QHBoxLayout(card)
+        h.setContentsMargins(0, 0, 0, 0)
+        h.setSpacing(0)
+
+        h.addWidget(self._build_vote_cluster(config))
+
+        content = QWidget()
+        content_layout = QVBoxLayout(content)
+        content_layout.setContentsMargins(0, 0, 0, 0)
+        content_layout.setSpacing(0)
+        content_layout.addLayout(self._build_feed_header(username, color))
+        content_layout.addWidget(self._build_feed_photo(image_index))
+        content_layout.addWidget(self._build_feed_caption(username, caption))
+
+        comment_count = QLabel(f"💬  {config['comment_count']}")
+        comment_count.setObjectName("feedCommentCount")
+        comment_count.setContentsMargins(10, 0, 10, 8)
+        content_layout.addWidget(comment_count)
+
+        h.addWidget(content, 1)
 
         return card
+
+    def _build_vote_cluster(self, config):
+        cluster = QFrame()
+        cluster.setObjectName("voteCluster")
+        layout = QVBoxLayout(cluster)
+        layout.setContentsMargins(8, 10, 8, 10)
+        layout.setSpacing(2)
+        layout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignHCenter)
+
+        up = self._make_action_button("▲", "voteArrowUp", config.get("upvote_flash"))
+        layout.addWidget(up, alignment=Qt.AlignmentFlag.AlignCenter)
+
+        count = QLabel(config["vote_count"])
+        count.setObjectName("voteCount")
+        count.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(count)
+
+        down = self._make_action_button("▼", "voteArrowDown", config.get("downvote_flash"))
+        layout.addWidget(down, alignment=Qt.AlignmentFlag.AlignCenter)
+
+        return cluster
+
+    def _make_action_button(self, text, object_name, flash_color):
+        btn = QPushButton(text)
+        btn.setObjectName(object_name)
+        btn.setFlat(True)
+        btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        if flash_color:
+            btn.setProperty("flashColor", flash_color)
+        return btn
 
     # ===== "shorts" style: TikTok / YouTube =====
 

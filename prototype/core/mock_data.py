@@ -157,6 +157,64 @@ MOCK_FEED_POSTS = [
 # Caption shown on the "shorts"-style screens (TikTok, YouTube).
 MOCK_SHORTS_CAPTION = "wait for it... 😅"
 
+# Per-app action-button config for the "feed" style, so each app is
+# recognizable by its button personality, not just its accent color.
+# "layout" picks which shared renderer (see FakeAppScreen) builds it:
+#   "icons"   -- evenly-spaced icon-only buttons in a row (Instagram, X)
+#   "labeled" -- full-width icon+text buttons separated by dividers (Facebook)
+#   "vote"    -- a vertical up/count/down cluster + separate comment count,
+#                positioned on the post's left side instead of a bottom row
+#                (Reddit) -- genuinely different real-world layout, not just
+#                different icons, so it's flagged here rather than forced
+#                into the same row shape as the other three.
+# Each button's "flash" color is what it briefly highlights as on click
+# (cosmetic press feedback only -- see FakeAppScreen._flash_action_button),
+# picked to match that action's real-world platform color.
+FEED_ACTIONS = {
+    "Instagram": {
+        "layout": "icons",
+        "buttons": [
+            {"id": "like", "icon": "♡", "flash": "#ff3b5c"},
+            {"id": "comment", "icon": "💬", "flash": "#8fd3c7"},
+            {"id": "share", "icon": "➤", "flash": "#8fd3c7"},
+            {"id": "save", "icon": "🔖", "flash": "#8fd3c7"},
+        ],
+    },
+    "Facebook": {
+        "layout": "labeled",
+        "buttons": [
+            {"id": "like", "icon": "👍", "label": "Like", "flash": "#1877f2"},
+            {"id": "comment", "icon": "💬", "label": "Comment", "flash": "#1877f2"},
+            {"id": "share", "icon": "↗", "label": "Share", "flash": "#1877f2"},
+        ],
+    },
+    "X (Twitter)": {
+        "layout": "icons",
+        "size": "small",
+        "buttons": [
+            {"id": "reply", "icon": "💬", "flash": "#1d9bf0"},
+            {"id": "retweet", "icon": "↻", "flash": "#00ba7c"},
+            {"id": "like", "icon": "♡", "flash": "#f91880"},
+            {"id": "share", "icon": "↗", "flash": "#1d9bf0"},
+        ],
+    },
+    "Reddit": {
+        "layout": "vote",
+        "vote_count": "1.2K",
+        "comment_count": "84 comments",
+        "upvote_flash": "#ff4500",
+        "downvote_flash": "#7193ff",
+    },
+}
+
+
+def feed_actions_for(name):
+    """Per-app action-button config for the feed style. Falls back to
+    Instagram's icon row for any app that isn't explicitly configured, so
+    style_for()'s generic "feed" fallback for unlisted apps never crashes
+    here even though it isn't reachable with the current app roster."""
+    return FEED_ACTIONS.get(name, FEED_ACTIONS["Instagram"])
+
 # Fictional contacts for the "messages" style -- invented generic names, not
 # real people. The first contact is who MOCK_CHAT is "with"; "Alex" in that
 # chat is the app's own (also fictional) user, not a contact, so it's
