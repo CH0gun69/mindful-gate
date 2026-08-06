@@ -1,7 +1,9 @@
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QLabel, QFrame
 from PySide6.QtCore import Qt, Signal
 
-from core.mock_data import TOP_APPS, PROTECTABLE_APPS, DEFAULT_PROTECTED_APPS, glyph_for
+from core.mock_data import (
+    TOP_APPS, PROTECTABLE_APPS, DEFAULT_PROTECTED_APPS, glyph_for, icon_path_for,
+)
 from ui.widgets.app_icon import AppIcon
 from ui.widgets.screen_time_widget import ScreenTimeWidget
 
@@ -93,7 +95,7 @@ class PhoneHomeScreen(QWidget):
 
         for index, name in enumerate(_build_app_roster()):
             glyph, color = glyph_for(name)
-            icon = AppIcon(name, glyph, color)
+            icon = AppIcon(name, glyph, color, icon_path=icon_path_for(name))
             icon.clicked.connect(
                 lambda checked=False, n=name: self.app_tapped.emit(n, n in self._protected)
             )

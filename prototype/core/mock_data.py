@@ -3,6 +3,12 @@ Hardcoded mock data for the mindful-gate prototype.
 No real usage tracking — this is purely for demo purposes.
 """
 
+import os
+
+ASSETS_ICONS_DIR = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets", "icons"
+)
+
 SCREEN_TIME_TODAY = "4h 32m"
 UNLOCKS_TODAY = 87
 NOTIFICATIONS_TODAY = 143
@@ -49,6 +55,34 @@ APP_GLYPHS = {
 
 def glyph_for(name):
     return APP_GLYPHS.get(name, (name[0].upper(), "#3a3f47"))
+
+
+# Real brand-logo SVGs (Simple Icons, MIT-licensed, simpleicons.org) for apps
+# that have one, keyed off the same names as APP_GLYPHS. "Messages" is a
+# fictional stand-in app with no real-world brand to match, so it's
+# intentionally absent here and keeps falling back to its emoji avatar via
+# glyph_for() -- see icon_path_for()'s docstring.
+APP_ICON_FILES = {
+    "Instagram": "instagram.svg",
+    "TikTok": "tiktok.svg",
+    "X (Twitter)": "x.svg",
+    "YouTube": "youtube.svg",
+    "Facebook": "facebook.svg",
+    "Reddit": "reddit.svg",
+}
+
+
+def icon_path_for(name):
+    """Absolute path to name's real brand-logo SVG, or None if it doesn't
+    have one -- callers (AppIcon) fall back to glyph_for()'s emoji/letter
+    avatar in that case. Also None if the file is unexpectedly missing on
+    disk, so a bad asset degrades to the existing fallback instead of
+    crashing."""
+    filename = APP_ICON_FILES.get(name)
+    if not filename:
+        return None
+    path = os.path.join(ASSETS_ICONS_DIR, filename)
+    return path if os.path.isfile(path) else None
 
 
 def _parse_minutes(time_str):
