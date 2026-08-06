@@ -29,7 +29,12 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("mindful-gate — prototype")
-        self.resize(390, 780)  # roughly phone-shaped for the demo
+        # Fixed, not just an initial size -- a real phone screen doesn't
+        # resize either, and letting the window grow/maximize stretched
+        # the shorts screen's pre-cropped image disproportionately (caught
+        # via manual testing). setFixedSize also disables the maximize
+        # control on most window managers.
+        self.setFixedSize(390, 780)
 
         self.stack = QStackedWidget()
         self.setCentralWidget(self.stack)
@@ -113,7 +118,7 @@ class DebugWindow(QMainWindow):
     def __init__(self, screen_name, app_name):
         super().__init__()
         self.setWindowTitle(f"mindful-gate — DEBUG: {screen_name}")
-        self.resize(390, 780)
+        self.setFixedSize(390, 780)  # same reasoning as MainWindow
 
         screen = DEBUG_SCREENS[screen_name]()
 

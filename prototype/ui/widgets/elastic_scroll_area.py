@@ -51,6 +51,17 @@ class ElasticScrollArea(QScrollArea):
         top = max(0, int(round(value)))
         bottom = max(0, int(round(-value)))
         self.setViewportMargins(0, top, 0, bottom)
+        # The top case moves the viewport (new position -> Qt naturally
+        # repaints the freed region above it). The bottom case only
+        # resizes it in place (same top-left origin, just shorter) -- a
+        # plain resize-without-move can leave stale backing-store pixels
+        # in the newly-freed strip below it on some platforms/themes
+        # instead of properly repainting it, which reads as a visible
+        # "square" artifact there instead of a clean gap (reported via
+        # manual testing on a real display; couldn't be reproduced in this
+        # sandbox's offscreen renderer to confirm directly). Forcing a full
+        # repaint here covers that gap either way.
+        self.update()
 
     overscrollOffset = Property(float, _get_offset, _set_offset)
 

@@ -323,11 +323,32 @@ class FakeAppScreen(QWidget):
         visual cue, same as every other screen's placeholder content.
         Applied as an instance-level stylesheet override (not a shared QSS
         rule) since buttons sharing one object name -- e.g. X's 4 icons --
-        each need their own different flash color."""
-        btn.setStyleSheet(f"color: {color};")
+        each need their own different flash color.
+
+        Sets both a text-color change AND a translucent background pill --
+        color emoji glyphs (💬, 🔖, 👍) are rendered through the system's
+        color-emoji font as multi-color glyphs with their own embedded
+        color data, so `color:` has no visible effect on them (confirmed by
+        manual testing: plain-symbol buttons like ♡/➤/▲/▼ flashed fine,
+        every emoji-led one didn't). A background fill is visible
+        regardless of glyph type, so it's the part doing the real work here
+        -- the text-color change is just a free upgrade for the buttons
+        where it does apply."""
+        r, g, b = (int(color[i:i+2], 16) for i in (1, 3, 5))
+        btn.setStyleSheet(
+            f"color: {color}; background-color: rgba({r}, {g}, {b}, 60); border-radius: 8px;"
+        )
         QTimer.singleShot(450, lambda: btn.setStyleSheet(""))
 
     # ===== "shorts" style: TikTok / YouTube =====
+
+    # TikTok and YouTube happen to land on the same MOCK_IMAGES bucket via
+    # mock_image_index_for()'s general-purpose hash (confirmed via manual
+    # testing -- both apps showed the identical photo). Shorts only ever
+    # has these two apps, so just guarantee they differ explicitly here
+    # rather than reworking the general hash (which needs to keep working
+    # well for the feed style's many distinct per-post indices).
+    SHORTS_IMAGE_OFFSET = {"TikTok": 0, "YouTube": 3}
 
     def _build_shorts_body(self, name):
         wrap = QFrame()
@@ -345,7 +366,8 @@ class FakeAppScreen(QWidget):
         # aspect ratio so the final stretch-to-fit is barely noticeable.
         image_label.setScaledContents(True)
         image_label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        image_path = mock_image_path(mock_image_index_for(name))
+        offset = self.SHORTS_IMAGE_OFFSET.get(name, 0)
+        image_path = mock_image_path(mock_image_index_for(name, offset=offset))
         if image_path:
             image_label.setPixmap(cover_pixmap(image_path, 390, 700))
         grid.addWidget(image_label, 0, 0)
