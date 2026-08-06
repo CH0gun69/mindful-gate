@@ -1,7 +1,8 @@
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QFrame
 from PySide6.QtCore import Qt, Signal
 
-from core.mock_data import glyph_for
+from core.mock_data import glyph_for, icon_path_for
+from ui.widgets.svg_icon import white_svg_pixmap
 
 
 class FakeAppScreen(QWidget):
@@ -62,11 +63,19 @@ class FakeAppScreen(QWidget):
     def set_app(self, name):
         glyph, color = glyph_for(name)
         self.title.setText(name)
-        self.avatar.setText(glyph)
-        self.avatar.setStyleSheet(
-            f"background-color: {color}; border-radius: 10px; "
-            "color: #ffffff; font-size: 16px; font-weight: 600;"
-        )
+
+        self.avatar.setStyleSheet(f"background-color: {color}; border-radius: 10px;")
+        icon_path = icon_path_for(name)
+        if icon_path:
+            # setPixmap() clears any previously-set text automatically (and
+            # vice versa below) -- QLabel only ever shows one or the other.
+            self.avatar.setPixmap(white_svg_pixmap(icon_path, 22))
+        else:
+            self.avatar.setText(glyph)
+            self.avatar.setStyleSheet(
+                self.avatar.styleSheet()
+                + " color: #ffffff; font-size: 16px; font-weight: 600;"
+            )
 
         while self._body_layout.count():
             item = self._body_layout.takeAt(0)
@@ -74,6 +83,12 @@ class FakeAppScreen(QWidget):
                 continue
             w = item.widget()
             if w is not None:
+                # setParent(None) detaches (and hides) it immediately --
+                # takeAt() alone only unmanages it from the layout, so
+                # without this it stays visible at its old position until
+                # deleteLater() actually runs on a later event-loop pass.
+                # Same bug/fix as DashboardScreen._refresh_legend.
+                w.setParent(None)
                 w.deleteLater()
 
         note = QLabel(f"This is a mock {name} screen for the demo — no real content is loaded.")
