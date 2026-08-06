@@ -36,13 +36,9 @@ class MainWindow(QMainWindow):
 
         self.current_intention = "Only reply to messages"
         self.current_app = "Instagram"
-        # Which screen triggered the interruption, so Continue/Go Back know
-        # where to return to: "phone_home" -> fake app screen / phone home,
-        # "dashboard" -> back to the Dashboard (existing simulate-button flow).
-        self._interruption_source = "dashboard"
         # Single source of truth for which apps currently interrupt — handed
-        # to both Phone Home (real tap behavior) and Dashboard (badges +
-        # Simulate button) so neither can drift out of sync with Setup.
+        # to both Phone Home (real tap behavior) and Dashboard (Protected
+        # badges) so neither can drift out of sync with Setup.
         self.protected_apps = set(DEFAULT_PROTECTED_APPS)
 
         self.phone_home = PhoneHomeScreen(protected_apps=self.protected_apps)
@@ -67,7 +63,6 @@ class MainWindow(QMainWindow):
 
         self.dashboard.go_to_setup.connect(lambda: self.stack.setCurrentWidget(self.setup))
         self.dashboard.go_to_insights.connect(lambda: self.stack.setCurrentWidget(self.insights))
-        self.dashboard.simulate_open.connect(self._trigger_interruption)
         self.dashboard.go_home.connect(lambda: self.stack.setCurrentWidget(self.phone_home))
 
         self.setup.go_back.connect(lambda: self.stack.setCurrentWidget(self.dashboard))
@@ -90,27 +85,20 @@ class MainWindow(QMainWindow):
 
     def _on_phone_home_app_tapped(self, app_name, protected):
         if protected:
-            self._trigger_interruption(app_name, source="phone_home")
+            self._trigger_interruption(app_name)
         else:
             self._open_fake_app(app_name)
 
-    def _trigger_interruption(self, app_name, source="dashboard"):
+    def _trigger_interruption(self, app_name):
         self.current_app = app_name
-        self._interruption_source = source
         self.interruption.set_context(app_name, self.current_intention)
         self.stack.setCurrentWidget(self.interruption)
 
     def _on_interruption_continue(self):
-        if self._interruption_source == "phone_home":
-            self._open_fake_app(self.current_app)
-        else:
-            self.stack.setCurrentWidget(self.dashboard)
+        self._open_fake_app(self.current_app)
 
     def _on_interruption_go_back(self):
-        if self._interruption_source == "phone_home":
-            self.stack.setCurrentWidget(self.phone_home)
-        else:
-            self.stack.setCurrentWidget(self.dashboard)
+        self.stack.setCurrentWidget(self.phone_home)
 
     def _open_fake_app(self, app_name):
         self.fake_app.set_app(app_name)

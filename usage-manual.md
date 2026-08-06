@@ -100,7 +100,6 @@ These three screens are the original wellbeing-stats flow (screen time, focus mo
 Once you're on the **Dashboard** (e.g. via debug mode):
 
 - **Activate Focus Mode** → **Setup** screen (choose protected apps + write an intention) → **Activate Protection** returns you to the Dashboard with focus mode marked on, or **Back** returns without saving
-- **▶ Simulate opening Instagram** → triggers the same Interruption screen described above; **Continue** or **Go Back** both return you to the Dashboard (this is a leftover test button from before the Phone Home screen existed)
 - **View Insights** → **Insights** screen (intentions kept, time saved, most-interrupted app); **Back to Dashboard** returns
 - **⌂ Home** → returns to the Phone Home screen (one-way — there's no button back into Dashboard from Phone Home yet)
 
@@ -173,8 +172,8 @@ mindful-gate/
     │   ├── styles.qss         ← one stylesheet for the whole app (dark theme, teal accent)
     │   └── widgets/
     │       ├── app_icon.py    ← tappable app icon (avatar + label) — used by phone_home
-    │       ├── app_row.py     ← one row in Dashboard's "Top apps" list
-    │       └── stat_card.py   ← one stat box in Dashboard (e.g. "87 Unlocks")
+    │       ├── stat_card.py   ← one stat box in Dashboard (e.g. "87 Unlocks")
+    │       └── usage_ring_chart.py ← Dashboard's screen-time donut chart
     └── assets/                ← icons/images (currently empty placeholders)
 ```
 

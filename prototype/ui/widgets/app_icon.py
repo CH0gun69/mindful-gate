@@ -7,7 +7,7 @@ class AppIcon(QPushButton):
 
     Used by the phone home screen grid and dock. The avatar color/glyph is
     supplied by the caller so this stays a dumb, reusable presentation widget —
-    same pattern as StatCard/AppRow.
+    same pattern as StatCard.
     """
 
     def __init__(self, name, glyph, color, avatar_size=56):
