@@ -15,21 +15,21 @@ class InterruptionScreen(QWidget):
         root = QVBoxLayout(self)
         root.setContentsMargins(48, 64, 48, 48)
         root.setSpacing(24)
-        root.setAlignment(Qt.AlignTop)
+        root.setAlignment(Qt.AlignmentFlag.AlignTop)
 
         self.app_label = QLabel("You opened Instagram.")
         self.app_label.setObjectName("interruptTitle")
-        self.app_label.setAlignment(Qt.AlignCenter)
+        self.app_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         root.addWidget(self.app_label)
 
         question = QLabel("Still on purpose?")
         question.setObjectName("interruptQuestion")
-        question.setAlignment(Qt.AlignCenter)
+        question.setAlignment(Qt.AlignmentFlag.AlignCenter)
         root.addWidget(question)
 
         self.intention_label = QLabel()
         self.intention_label.setObjectName("intentionQuote")
-        self.intention_label.setAlignment(Qt.AlignCenter)
+        self.intention_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.intention_label.setWordWrap(True)
         root.addWidget(self.intention_label)
 
@@ -37,7 +37,7 @@ class InterruptionScreen(QWidget):
 
         icon = QLabel("🧘")
         icon.setObjectName("interruptIcon")
-        icon.setAlignment(Qt.AlignCenter)
+        icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
         root.addWidget(icon)
 
         root.addStretch(3)

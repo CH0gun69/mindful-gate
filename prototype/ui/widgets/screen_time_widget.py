@@ -12,7 +12,7 @@ class ScreenTimeWidget(QPushButton):
     def __init__(self):
         super().__init__()
         self.setObjectName("screenTimeWidget")
-        self.setCursor(Qt.PointingHandCursor)
+        self.setCursor(Qt.CursorShape.PointingHandCursor)
         self.setFlat(True)
 
         layout = QHBoxLayout(self)
@@ -40,17 +40,17 @@ class ScreenTimeWidget(QPushButton):
         unlocks_block.setSpacing(2)
         unlocks_value = QLabel(str(UNLOCKS_TODAY))
         unlocks_value.setObjectName("screenTimeUnlocksValue")
-        unlocks_value.setAlignment(Qt.AlignRight)
+        unlocks_value.setAlignment(Qt.AlignmentFlag.AlignRight)
         unlocks_caption = QLabel("Unlocks")
         unlocks_caption.setObjectName("screenTimeUnlocksCaption")
-        unlocks_caption.setAlignment(Qt.AlignRight)
+        unlocks_caption.setAlignment(Qt.AlignmentFlag.AlignRight)
         unlocks_block.addWidget(unlocks_value)
         unlocks_block.addWidget(unlocks_caption)
         layout.addLayout(unlocks_block)
 
         for lbl in (value, caption, unlocks_value, unlocks_caption):
-            lbl.setAttribute(Qt.WA_TransparentForMouseEvents)
-        divider.setAttribute(Qt.WA_TransparentForMouseEvents)
+            lbl.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
+        divider.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
 
         # QPushButton.sizeHint() ignores the child layout entirely (same
         # issue as AppIcon) — force a sensible height so it doesn't collapse.

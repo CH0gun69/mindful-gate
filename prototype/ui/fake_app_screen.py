@@ -42,14 +42,14 @@ class FakeAppScreen(QWidget):
 
         back_btn = QPushButton("←")
         back_btn.setObjectName("fakeAppBackBtn")
-        back_btn.setCursor(Qt.PointingHandCursor)
+        back_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         back_btn.clicked.connect(lambda: self.go_back.emit())
         layout.addWidget(back_btn)
 
         self.avatar = QLabel()
         self.avatar.setObjectName("fakeAppAvatar")
         self.avatar.setFixedSize(36, 36)
-        self.avatar.setAlignment(Qt.AlignCenter)
+        self.avatar.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.avatar)
 
         self.title = QLabel()
@@ -70,8 +70,11 @@ class FakeAppScreen(QWidget):
 
         while self._body_layout.count():
             item = self._body_layout.takeAt(0)
-            if item.widget():
-                item.widget().deleteLater()
+            if item is None:
+                continue
+            w = item.widget()
+            if w is not None:
+                w.deleteLater()
 
         note = QLabel(f"This is a mock {name} screen for the demo — no real content is loaded.")
         note.setObjectName("fakeAppNote")

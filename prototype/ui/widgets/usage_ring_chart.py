@@ -35,7 +35,7 @@ class UsageRingChart(QWidget):
 
     def paintEvent(self, event):
         painter = QPainter(self)
-        painter.setRenderHint(QPainter.Antialiasing)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 
         total = sum(minutes for _, minutes, _ in self._segments)
         if total <= 0:

@@ -153,8 +153,10 @@ class DashboardScreen(QWidget):
     def _refresh_legend(self):
         while self._legend_layout.count():
             item = self._legend_layout.takeAt(0)
+            if item is None:
+                continue
             widget = item.widget()
-            if widget:
+            if widget is not None:
                 # setParent(None) detaches (and hides) it immediately --
                 # takeAt() alone only unmanages it from the layout, so
                 # without this it stays visible at its old position until
