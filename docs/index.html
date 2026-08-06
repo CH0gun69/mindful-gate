@@ -48,6 +48,17 @@ html,body{
 }
 .app-icon .label{ font-size:11px; color:var(--dim); text-align:center; }
 
+/* real brand-logo icons: white mask over the SVG, same look as the Python
+   app's AppIcon (colored square + white mark) instead of each brand's own
+   color -- keeps every icon visible regardless of its own hue (X (Twitter)'s
+   brand color is near-black, same as several card backgrounds here). */
+.icon-mask{
+  width:55%; height:55%; background-color:#fff;
+  -webkit-mask-size:contain; mask-size:contain;
+  -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat;
+  -webkit-mask-position:center; mask-position:center;
+}
+
 .screen-time-widget{
   width:100%; background:var(--bg2); border:none; border-radius:14px; padding:16px;
   color:var(--text); text-align:left; display:flex; align-items:center;
@@ -85,14 +96,17 @@ html,body{
 .badge{ color:var(--accent); font-size:11px; margin-left:8px; }
 .app-row .time{ color:var(--muted); font-size:13px; }
 
-/* screen-time usage card (ring chart + legend) */
+/* screen-time usage card (ring chart + legend) -- legend also carries the
+   "Protected" badge; the separate "Top apps" list was folded into it since
+   showing the same apps/times twice was redundant (same call made on the
+   Python side). */
 .screen-time-card{ background:var(--bg2); border-radius:14px; padding:18px; margin-bottom:20px; }
 .st-top{ display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:16px; }
 .st-top .big-time{ margin:4px 0 0; }
 .usage-legend{ display:flex; flex-direction:column; gap:10px; }
 .legend-row{ display:flex; align-items:center; gap:10px; }
-.legend-row .name{ font-weight:500; flex:1; }
-.legend-row .time{ color:var(--muted); font-size:13px; }
+.legend-row .name{ font-weight:500; }
+.legend-row .time{ color:var(--muted); font-size:13px; margin-left:auto; }
 .legend-dot{ width:10px; height:10px; border-radius:50%; border:1px solid var(--border2); flex-shrink:0; }
 
 .btn-primary{
@@ -124,15 +138,87 @@ html,body{
 .intention-quote{ font-size:16px; font-style:italic; color:var(--accent); padding:16px; background:var(--bg2); border-radius:10px; width:100%; }
 .interrupt-actions{ width:100%; margin-top:8px; }
 
-/* fake app screen */
+/* ===== Fake App screen ===== */
 .fake-header{ display:flex; align-items:center; gap:12px; padding:14px 16px; border-bottom:1px solid var(--border); flex-shrink:0; }
 .back-btn{ background:none; border:none; color:var(--text); font-size:20px; cursor:pointer; padding:4px 8px; }
 .back-btn:active{ color:var(--accent); }
 .fake-title{ font-size:17px; font-weight:600; flex:1; }
-.fake-note{ font-size:11px; color:var(--muted); font-style:italic; }
-.fake-card{ background:var(--bg2); border-radius:10px; padding:18px; margin-bottom:14px; color:var(--dim); font-size:13px; }
+.fake-avatar{
+  width:36px; height:36px; border-radius:10px; display:flex; align-items:center;
+  justify-content:center; font-size:16px; font-weight:600; color:#fff; flex-shrink:0;
+}
+.fake-app-body{ flex:1; min-height:0; display:flex; flex-direction:column; }
 
-::-webkit-scrollbar{ width:0; height:0; }
+/* scrollable content (feed / messages chat) -- .scroll-inner is what the
+   elastic bounce script translates; overflow/scroll metrics live on
+   .scroll-area and are unaffected by that transform. */
+.scroll-area{ flex:1; min-height:0; overflow-y:auto; overscroll-behavior:contain; }
+.scroll-inner{ padding:16px; display:flex; flex-direction:column; gap:16px; }
+
+/* feed style: Instagram / Facebook / X (Twitter) / Reddit -- leans neutral/
+   realistic rather than this app's own teal design system on purpose, same
+   reasoning as the Python version: meant to read as "a real app". */
+.post-card{ background:#1c1c1e; border-radius:10px; overflow:hidden; }
+.post-header{ display:flex; align-items:center; gap:8px; padding:10px 10px 8px; }
+.post-avatar{
+  width:28px; height:28px; border-radius:14px; display:flex; align-items:center;
+  justify-content:center; color:#fff; font-weight:600; font-size:12px; flex-shrink:0;
+}
+.post-username{ color:#f2f2f2; font-weight:600; font-size:13px; }
+.post-photo{ height:160px; background-size:cover; background-position:center; background-color:#0d0d0d; }
+.post-caption{ color:#cfcfcf; font-size:12px; padding:8px 10px 10px; }
+
+/* Instagram/X action row: icon-only, evenly spaced */
+.actions-icons{ display:flex; align-items:center; justify-content:space-around; padding:4px 10px 8px; }
+.action-btn{
+  background:none; border:none; cursor:pointer; padding:2px 6px;
+  color:#e8e8e8; font-size:20px; transition:color .15s ease;
+}
+.action-btn.small{ color:#a8a8a8; font-size:15px; }
+
+/* Facebook action row: full-width labeled buttons + thin dividers */
+.actions-labeled{ display:flex; border-top:1px solid #2a2a2c; }
+.action-btn.labeled{ flex:1; padding:8px 0; color:#b8b8b8; font-size:12px; font-weight:600; }
+.action-divider{ width:1px; background:#2a2a2c; margin:6px 0; }
+
+/* Reddit: vertical vote cluster on the left, not a bottom row */
+.reddit-card{ display:flex; }
+.vote-cluster{
+  background:#161617; border-top-left-radius:10px; border-bottom-left-radius:10px;
+  display:flex; flex-direction:column; align-items:center; gap:2px; padding:10px 8px;
+}
+.vote-btn{ background:none; border:none; cursor:pointer; color:#818384; font-size:13px; padding:2px; transition:color .15s ease; }
+.vote-count{ color:#d7dadc; font-size:11px; font-weight:700; }
+.post-content{ flex:1; min-width:0; }
+.comment-count{ color:#818384; font-size:11px; padding:0 10px 8px; }
+
+/* shorts style: TikTok / YouTube */
+.shorts-wrap{ position:relative; flex:1; background-size:cover; background-position:center; background-color:#000; }
+.shorts-caption-bar{ position:absolute; left:0; right:60px; bottom:0; padding:10px 16px 16px; background:rgba(0,0,0,.55); }
+.shorts-username{ color:#fff; font-weight:700; font-size:13px; }
+.shorts-caption{ color:#e8e8e8; font-size:12px; margin-top:4px; }
+.shorts-icons-col{ position:absolute; right:12px; bottom:40px; display:flex; flex-direction:column; align-items:center; gap:14px; }
+.shorts-icon{ color:#fff; font-size:22px; text-align:center; }
+.shorts-icon .count{ display:block; color:#d8d8d8; font-size:10px; font-weight:600; margin-top:2px; }
+
+/* messages style */
+.messages-wrap{ flex:1; min-height:0; display:flex; }
+.messages-sidebar{ width:128px; flex-shrink:0; background:#17181a; border-right:1px solid #26282c; padding:10px 6px; overflow-y:auto; }
+.contact-row{ border-radius:8px; padding:6px 8px; margin-bottom:4px; }
+.contact-row.active{ background:#23272f; }
+.contact-name{ color:#eef0f2; font-size:12px; font-weight:600; }
+.contact-preview{ color:#8a8f98; font-size:11px; margin-top:2px; }
+.chat-inner{ gap:8px; }
+.chat-row{ display:flex; }
+.chat-row.me{ justify-content:flex-end; }
+.chat-row.them{ justify-content:flex-start; }
+.chat-bubble{ max-width:170px; border-radius:14px; padding:8px 12px; font-size:13px; }
+.chat-bubble.me{ background:var(--accent); color:#0e1012; }
+.chat-bubble.them{ background:#2a2d33; color:#eef0f2; }
+
+::-webkit-scrollbar{ width:6px; height:6px; }
+::-webkit-scrollbar-thumb{ background:#3a3f47; border-radius:3px; }
+::-webkit-scrollbar-track{ background:transparent; }
 </style>
 </head>
 <body>
@@ -172,14 +258,10 @@ html,body{
   <div class="screen" id="screen-fake_app">
     <div class="fake-header">
       <button class="back-btn" onclick="go('phone_home')">←</button>
+      <div class="fake-avatar" id="fakeAppAvatar"></div>
       <span class="fake-title" id="fakeAppTitle">Instagram</span>
-      <span class="fake-note">mock</span>
     </div>
-    <div class="body-pad">
-      <div class="fake-card">This is a placeholder feed. No real content is loaded — mindful-gate never connects to the internet or the real app.</div>
-      <div class="fake-card">Card 2 — just here to look like a real timeline for the demo.</div>
-      <div class="fake-card">Card 3 — nothing to see here either.</div>
-    </div>
+    <div class="fake-app-body" id="fakeAppBody"></div>
   </div>
 
   <!-- ===== Dashboard ===== -->
@@ -201,12 +283,9 @@ html,body{
         <div class="stat-card"><div class="val">87</div><div class="lab">Unlocks</div></div>
         <div class="stat-card"><div class="val">143</div><div class="lab">Notifications</div></div>
       </div>
-      <div class="section-label">Top apps</div>
-      <div id="topApps"></div>
       <div class="section-label">Focus Mode</div>
       <button class="btn-primary" onclick="go('setup')">Activate Focus Mode</button>
       <button class="btn-link" onclick="go('insights')">View Insights →</button>
-      <button class="btn-link" id="simulateBtn" onclick="onSimulateClick()">▶ Simulate opening Instagram</button>
     </div>
   </div>
 
@@ -251,6 +330,33 @@ const APP_GLYPHS = {
 };
 function glyphFor(name){ return APP_GLYPHS[name] || [name[0].toUpperCase(), "#3a3f47"]; }
 
+// Real brand-logo SVGs (Simple Icons, CC0), copied locally into
+// docs/assets/icons/ -- same files the Python prototype uses, no network
+// fetch at runtime. "Messages" has no real-world brand, so it's absent
+// here and keeps its emoji avatar (see iconPathFor()).
+const APP_ICON_FILES = {
+  "Instagram": "assets/icons/instagram.svg",
+  "TikTok": "assets/icons/tiktok.svg",
+  "X (Twitter)": "assets/icons/x.svg",
+  "YouTube": "assets/icons/youtube.svg",
+  "Facebook": "assets/icons/facebook.svg",
+  "Reddit": "assets/icons/reddit.svg",
+};
+function iconPathFor(name){ return APP_ICON_FILES[name] || null; }
+
+// Rendered white on the colored avatar background via a CSS mask, same
+// visual result as the Python app's approach (and same reasoning: X
+// (Twitter)'s own brand color is near-black, identical to some card
+// backgrounds here, so a colored icon there would be invisible -- white
+// stays visible regardless of the background hue).
+function avatarInnerHTML(name, size){
+  const iconPath = iconPathFor(name);
+  if(iconPath){
+    return `<div class="icon-mask" style="-webkit-mask-image:url('${iconPath}');mask-image:url('${iconPath}')"></div>`;
+  }
+  return glyphFor(name)[0];
+}
+
 const HOME_APPS = ["Instagram","YouTube","TikTok","Messages","X (Twitter)","Facebook","Reddit"];
 // Single source of truth for the pre-Setup default, same as
 // core/mock_data.DEFAULT_PROTECTED_APPS on the Python side -- PROTECTED is
@@ -260,15 +366,73 @@ const DEFAULT_PROTECTED_APPS = ["Instagram","TikTok","X (Twitter)"];
 let PROTECTED = new Set(DEFAULT_PROTECTED_APPS);
 const DOCK_APPS = ["Phone","Camera","Settings","Messages"];
 const TOP_APPS = [
-  {name:"Instagram", time:"1h 48m", protected:true},
-  {name:"YouTube", time:"1h 05m", protected:false},
-  {name:"TikTok", time:"52m", protected:true},
-  {name:"Messages", time:"31m", protected:false},
-  {name:"X (Twitter)", time:"16m", protected:true},
+  {name:"Instagram", time:"1h 48m"},
+  {name:"YouTube", time:"1h 05m"},
+  {name:"TikTok", time:"52m"},
+  {name:"Messages", time:"31m"},
+  {name:"X (Twitter)", time:"16m"},
 ];
 const PROTECTABLE_APPS = ["Instagram","TikTok","X (Twitter)","YouTube","Facebook","Reddit"];
 let currentIntention = "Only reply to messages";
-let pendingApp = null;
+
+// ===== Fake App mock content (mirrors core/mock_data.py) =====
+const MOCK_IMAGES = [
+  "lake_forest.jpg","waterfall.jpg","flower_field.jpg","cat_closeup.jpg",
+  "yellow_flower.jpg","foggy_road.jpg","hay_bales.jpg","foggy_trees.jpg",
+  "sunset_field.jpg","bare_tree.jpg",
+];
+function mockImagePath(index){ return "assets/images/" + MOCK_IMAGES[((index % MOCK_IMAGES.length) + MOCK_IMAGES.length) % MOCK_IMAGES.length]; }
+function mockImageIndexFor(name, offset){
+  offset = offset || 0;
+  let weighted = 0;
+  for(let i=0;i<name.length;i++) weighted += (i+1) * name.charCodeAt(i);
+  return weighted + offset;
+}
+
+const MOCK_FEED_POSTS = [
+  ["wanderlust.jane", "chasing golden hour again 🌅"],
+  ["dev.marcus", "small wins today, one commit at a time"],
+  ["plant.mama", "she's finally blooming 🌸"],
+];
+const MOCK_SHORTS_CAPTION = "wait for it... 😅";
+const MOCK_CONTACTS = [
+  ["Jamie Chen", "Good to hear 🙂"],
+  ["Jordan Lee", "See you at 6?"],
+  ["Sam Park", "Sent the files 📎"],
+  ["Taylor Kim", "Haha exactly 😂"],
+];
+// "Alex" (the app's own fictional user) is being greeted, not a contact --
+// same reasoning as the Python side for not reusing that name as a contact.
+const MOCK_CHAT = [
+  ["them", "Hey Alex! How's it going?"],
+  ["me", "It's going well, thanks!"],
+  ["them", "Good to hear 🙂"],
+];
+
+const FEED_ACTIONS = {
+  "Instagram": { layout:"icons", buttons:[
+    {icon:"♡", flash:"#ff3b5c"}, {icon:"💬", flash:"#8fd3c7"},
+    {icon:"➤", flash:"#8fd3c7"}, {icon:"🔖", flash:"#8fd3c7"},
+  ]},
+  "Facebook": { layout:"labeled", buttons:[
+    {icon:"👍", label:"Like", flash:"#1877f2"},
+    {icon:"💬", label:"Comment", flash:"#1877f2"},
+    {icon:"↗", label:"Share", flash:"#1877f2"},
+  ]},
+  "X (Twitter)": { layout:"icons", size:"small", buttons:[
+    {icon:"💬", flash:"#1d9bf0"}, {icon:"↻", flash:"#00ba7c"},
+    {icon:"♡", flash:"#f91880"}, {icon:"↗", flash:"#1d9bf0"},
+  ]},
+  "Reddit": { layout:"vote", voteCount:"1.2K", commentCount:"84 comments",
+    upvoteFlash:"#ff4500", downvoteFlash:"#7193ff" },
+};
+function feedActionsFor(name){ return FEED_ACTIONS[name] || FEED_ACTIONS["Instagram"]; }
+
+const APP_STYLE = {
+  "Instagram":"feed", "Facebook":"feed", "X (Twitter)":"feed", "Reddit":"feed",
+  "TikTok":"shorts", "YouTube":"shorts", "Messages":"messages",
+};
+function styleFor(name){ return APP_STYLE[name] || "feed"; }
 
 function go(screen){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
@@ -279,10 +443,10 @@ function buildAppGrid(){
   const grid = document.getElementById('appGrid');
   grid.innerHTML = '';
   HOME_APPS.forEach(name=>{
-    const [glyph, color] = glyphFor(name);
+    const [, color] = glyphFor(name);
     const btn = document.createElement('button');
     btn.className = 'app-icon';
-    btn.innerHTML = `<div class="app-avatar" style="background:${color}">${glyph}</div><div class="label">${name}</div>`;
+    btn.innerHTML = `<div class="app-avatar" style="background:${color}">${avatarInnerHTML(name)}</div><div class="label">${name}</div>`;
     btn.onclick = () => openApp(name);
     grid.appendChild(btn);
   });
@@ -307,19 +471,6 @@ function parseMinutes(timeStr){
     else if(part.endsWith('m')) minutes = parseInt(part, 10);
   });
   return hours*60 + minutes;
-}
-
-function buildTopApps(){
-  const wrap = document.getElementById('topApps');
-  wrap.innerHTML = '';
-  TOP_APPS.forEach(app=>{
-    const row = document.createElement('div');
-    row.className = 'app-row';
-    // Badge reflects live PROTECTED state, not a static field -- same fix
-    // as ui/widgets/app_row.py on the Python side.
-    row.innerHTML = `<span class="name">${app.name}${PROTECTED.has(app.name)?'<span class="badge">Protected</span>':''}</span><span class="time">${app.time}</span>`;
-    wrap.appendChild(row);
-  });
 }
 
 function describeRingSegment(cx, cy, rOuter, rInner, startDeg, endDeg){
@@ -368,30 +519,20 @@ function buildRingChart(){
 }
 
 function buildUsageLegend(){
+  // Legend also carries the "Protected" badge -- the separate "Top apps"
+  // list was removed since it duplicated this same info (same call made
+  // on the Python side: ui/dashboard.py's set_protected_apps()).
   const wrap = document.getElementById('usageLegend');
   wrap.innerHTML = '';
   TOP_APPS.forEach(app=>{
     const [, color] = glyphFor(app.name);
     const row = document.createElement('div');
     row.className = 'legend-row';
+    const badge = PROTECTED.has(app.name) ? '<span class="badge">Protected</span>' : '';
     row.innerHTML = `<span class="legend-dot" style="background:${color}"></span>`
-      + `<span class="name">${app.name}</span><span class="time">${app.time}</span>`;
+      + `<span class="name">${app.name}</span>${badge}<span class="time">${app.time}</span>`;
     wrap.appendChild(row);
   });
-}
-
-function refreshSimulateBtn(){
-  const btn = document.getElementById('simulateBtn');
-  const isProtected = PROTECTED.has('Instagram');
-  btn.disabled = !isProtected;
-  btn.style.opacity = isProtected ? '1' : '0.4';
-  btn.style.cursor = isProtected ? 'pointer' : 'not-allowed';
-  btn.title = isProtected ? '' : "Instagram isn't currently protected — nothing to simulate.";
-}
-
-function onSimulateClick(){
-  // Defense in depth, same as DashboardScreen._on_simulate_clicked in Python.
-  if(PROTECTED.has('Instagram')) startInterruption('Instagram');
 }
 
 function buildProtectableApps(){
@@ -415,7 +556,6 @@ function openApp(name){
 }
 
 function startInterruption(name){
-  pendingApp = name;
   const [glyph] = glyphFor(name);
   document.getElementById('interruptGlyph').textContent = glyph;
   document.getElementById('interruptAppName').textContent = name;
@@ -426,10 +566,179 @@ function startInterruption(name){
   go('interruption');
 }
 
+// ===== Fake App screen: feed / shorts / messages, one shared entry point =====
+
 function showFakeApp(name){
-  const [glyph] = glyphFor(name);
-  document.getElementById('fakeAppTitle').textContent = glyph + '  ' + name;
+  document.getElementById('fakeAppTitle').textContent = name;
+
+  const [, color] = glyphFor(name);
+  const avatarEl = document.getElementById('fakeAppAvatar');
+  avatarEl.style.background = color;
+  avatarEl.innerHTML = avatarInnerHTML(name);
+
+  const body = document.getElementById('fakeAppBody');
+  const style = styleFor(name);
+  if(style === 'shorts') body.innerHTML = buildShortsHTML(name);
+  else if(style === 'messages') body.innerHTML = buildMessagesHTML();
+  else body.innerHTML = buildFeedHTML(name, color);
+
+  setupElasticScroll(body);
   go('fake_app');
+}
+
+function buildFeedHTML(name, color){
+  const actionsConfig = feedActionsFor(name);
+  let postsHTML = '';
+  MOCK_FEED_POSTS.forEach(([username, caption], i)=>{
+    const imgIdx = mockImageIndexFor(name, i);
+    postsHTML += buildFeedPostHTML(username, caption, color, imgIdx, actionsConfig);
+  });
+  return `<div class="scroll-area"><div class="scroll-inner">${postsHTML}</div></div>`;
+}
+
+function buildFeedPostHTML(username, caption, color, imgIdx, config){
+  const initial = username[0].toUpperCase();
+  const imgPath = mockImagePath(imgIdx);
+  const header = `<div class="post-header">`
+    + `<div class="post-avatar" style="background:${color}">${initial}</div>`
+    + `<span class="post-username">${username}</span></div>`;
+  const photo = `<div class="post-photo" style="background-image:url('${imgPath}')"></div>`;
+  const cap = `<div class="post-caption">${username} ${caption}</div>`;
+
+  if(config.layout === 'vote'){
+    // Reddit: NOT a bottom action row like the other three -- a vertical
+    // vote cluster on the left, comment count shown separately below the
+    // caption. Genuinely different real-world layout, same as the Python
+    // version's _build_reddit_post.
+    return `<div class="post-card reddit-card">`
+      + `<div class="vote-cluster">`
+      + `<button class="vote-btn" data-flash="${config.upvoteFlash}">▲</button>`
+      + `<div class="vote-count">${config.voteCount}</div>`
+      + `<button class="vote-btn" data-flash="${config.downvoteFlash}">▼</button>`
+      + `</div>`
+      + `<div class="post-content">${header}${photo}${cap}`
+      + `<div class="comment-count">💬  ${config.commentCount}</div></div>`
+      + `</div>`;
+  }
+
+  return `<div class="post-card">${header}${photo}${cap}${buildActionsHTML(config)}</div>`;
+}
+
+function buildActionsHTML(config){
+  if(config.layout === 'labeled'){
+    return '<div class="actions-labeled">' + config.buttons.map((b,i)=>
+      (i>0 ? '<div class="action-divider"></div>' : '')
+      + `<button class="action-btn labeled" data-flash="${b.flash}">${b.icon}  ${b.label}</button>`
+    ).join('') + '</div>';
+  }
+  const sizeClass = config.size === 'small' ? ' small' : '';
+  return `<div class="actions-icons">` + config.buttons.map(b =>
+    `<button class="action-btn${sizeClass}" data-flash="${b.flash}">${b.icon}</button>`
+  ).join('') + `</div>`;
+}
+
+function buildShortsHTML(name){
+  const imgPath = mockImagePath(mockImageIndexFor(name));
+  const handle = '@' + name.toLowerCase().replace(/[^a-z0-9]/g, '') + '_demo';
+  // Engagement icons are static display, not clickable -- matches the
+  // Python version (QLabel, not QPushButton, for these specifically).
+  return `<div class="shorts-wrap" style="background-image:url('${imgPath}')">`
+    + `<div class="shorts-caption-bar">`
+    + `<div class="shorts-username">${handle}</div>`
+    + `<div class="shorts-caption">${MOCK_SHORTS_CAPTION}</div></div>`
+    + `<div class="shorts-icons-col">`
+    + `<div class="shorts-icon">♥<span class="count">24.5K</span></div>`
+    + `<div class="shorts-icon">💬<span class="count">312</span></div>`
+    + `<div class="shorts-icon">↗<span class="count">1.2K</span></div>`
+    + `</div></div>`;
+}
+
+function buildMessagesHTML(){
+  const contactsHTML = MOCK_CONTACTS.map(([n, p], i) =>
+    `<div class="contact-row${i===0?' active':''}">`
+    + `<div class="contact-name">${n}</div><div class="contact-preview">${p}</div></div>`
+  ).join('');
+  const chatHTML = MOCK_CHAT.map(([sender, text]) => {
+    const isMe = sender === 'me';
+    return `<div class="chat-row ${isMe?'me':'them'}">`
+      + `<div class="chat-bubble ${isMe?'me':'them'}">${text}</div></div>`;
+  }).join('');
+  return `<div class="messages-wrap">`
+    + `<div class="messages-sidebar">${contactsHTML}</div>`
+    + `<div class="scroll-area"><div class="scroll-inner chat-inner">${chatHTML}</div></div>`
+    + `</div>`;
+}
+
+// Cosmetic-only press feedback: briefly recolor a clicked action/vote
+// button, then revert -- no real like/vote state tracked anywhere. Event
+// delegation on the body so freshly-rebuilt buttons never need rebinding.
+document.getElementById('fakeAppBody').addEventListener('click', (e) => {
+  const btn = e.target.closest('.action-btn, .vote-btn');
+  if(!btn) return;
+  const flash = btn.getAttribute('data-flash');
+  if(!flash) return;
+  btn.style.color = flash;
+  clearTimeout(btn._flashTimer);
+  btn._flashTimer = setTimeout(() => { btn.style.color = ''; }, 450);
+});
+
+// Purely-visual iOS-style rubber-band overscroll bounce on .scroll-area
+// elements: keep scrolling past the top/bottom and the content stretches a
+// little before springing back. Mirrors ui/widgets/elastic_scroll_area.py's
+// approach (accumulate a capped offset while overscroll input keeps
+// arriving, spring back via an eased animation once it stops) but simpler
+// here since CSS transform doesn't fight the browser's own scroll
+// machinery the way nudging Qt's managed widget position did.
+function setupElasticScroll(container){
+  container.querySelectorAll('.scroll-area').forEach(area=>{
+    const inner = area.querySelector('.scroll-inner');
+    if(!inner) return;
+    const MAX = 36, PX_PER_UNIT = 0.4, SETTLE_MS = 180, SPRING_MS = 280;
+    let offset = 0;
+    let settleTimer = null;
+    let raf = null;
+
+    function apply(v){
+      offset = v;
+      inner.style.transform = offset ? `translateY(${offset}px)` : '';
+    }
+
+    function springBack(){
+      if(offset === 0) return;
+      if(raf) cancelAnimationFrame(raf);
+      const start = offset;
+      const t0 = performance.now();
+      const c1 = 1.70158, c3 = c1 + 1;
+      function step(now){
+        const t = Math.min((now - t0) / SPRING_MS, 1);
+        const eased = 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
+        apply(t < 1 ? start * (1 - eased) : 0);
+        if(t < 1) raf = requestAnimationFrame(step);
+      }
+      raf = requestAnimationFrame(step);
+    }
+
+    area.addEventListener('wheel', (e) => {
+      const atTop = area.scrollTop <= 0;
+      const atBottom = area.scrollTop + area.clientHeight >= area.scrollHeight - 1;
+      const deltaY = e.deltaY;
+
+      if(offset === 0){
+        const overscrolling = (deltaY < 0 && atTop) || (deltaY > 0 && atBottom);
+        if(!overscrolling) return;
+      } else {
+        const sameDirection = (offset > 0 && deltaY < 0) || (offset < 0 && deltaY > 0);
+        if(!sameDirection){ springBack(); return; }
+      }
+
+      e.preventDefault();
+      if(raf) cancelAnimationFrame(raf);
+      const next = Math.max(-MAX, Math.min(MAX, offset - deltaY * PX_PER_UNIT));
+      apply(next);
+      clearTimeout(settleTimer);
+      settleTimer = setTimeout(springBack, SETTLE_MS);
+    }, { passive: false });
+  });
 }
 
 function activateProtection(){
@@ -445,18 +754,15 @@ function activateProtection(){
     if(cb && cb.checked) newProtected.add(name);
   });
   PROTECTED = newProtected;
-  buildTopApps();
-  refreshSimulateBtn();
+  buildUsageLegend();
   go('dashboard');
 }
 
 buildAppGrid();
 buildDock();
-buildTopApps();
 buildProtectableApps();
 buildRingChart();
 buildUsageLegend();
-refreshSimulateBtn();
 </script>
 </body>
 </html>
