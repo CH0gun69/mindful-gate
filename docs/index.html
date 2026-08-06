@@ -85,6 +85,16 @@ html,body{
 .badge{ color:var(--accent); font-size:11px; margin-left:8px; }
 .app-row .time{ color:var(--muted); font-size:13px; }
 
+/* screen-time usage card (ring chart + legend) */
+.screen-time-card{ background:var(--bg2); border-radius:14px; padding:18px; margin-bottom:20px; }
+.st-top{ display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:16px; }
+.st-top .big-time{ margin:4px 0 0; }
+.usage-legend{ display:flex; flex-direction:column; gap:10px; }
+.legend-row{ display:flex; align-items:center; gap:10px; }
+.legend-row .name{ font-weight:500; flex:1; }
+.legend-row .time{ color:var(--muted); font-size:13px; }
+.legend-dot{ width:10px; height:10px; border-radius:50%; border:1px solid var(--border2); flex-shrink:0; }
+
 .btn-primary{
   width:100%; background:var(--accent); color:#0e1012; border:none; border-radius:10px;
   padding:12px; font-weight:600; font-size:14px; cursor:pointer; margin-top:8px;
@@ -177,8 +187,16 @@ html,body{
     <div class="body-pad">
       <button class="back-btn" style="padding-left:0" onclick="go('phone_home')">⌂ Home</button>
       <h1 class="screen-title">Dashboard</h1>
-      <div class="caption">Screen time today</div>
-      <div class="big-time">4h 32m</div>
+      <div class="screen-time-card">
+        <div class="st-top">
+          <div>
+            <div class="big-time">4h 32m</div>
+            <div class="caption">Screen time today</div>
+          </div>
+          <svg id="ringChart" viewBox="0 0 112 112" width="112" height="112"></svg>
+        </div>
+        <div id="usageLegend" class="usage-legend"></div>
+      </div>
       <div class="stat-row">
         <div class="stat-card"><div class="val">87</div><div class="lab">Unlocks</div></div>
         <div class="stat-card"><div class="val">143</div><div class="lab">Notifications</div></div>
@@ -188,7 +206,7 @@ html,body{
       <div class="section-label">Focus Mode</div>
       <button class="btn-primary" onclick="go('setup')">Activate Focus Mode</button>
       <button class="btn-link" onclick="go('insights')">View Insights →</button>
-      <button class="btn-link" onclick="startInterruption('Instagram')">▶ Simulate opening Instagram</button>
+      <button class="btn-link" id="simulateBtn" onclick="onSimulateClick()">▶ Simulate opening Instagram</button>
     </div>
   </div>
 
@@ -234,7 +252,12 @@ const APP_GLYPHS = {
 function glyphFor(name){ return APP_GLYPHS[name] || [name[0].toUpperCase(), "#3a3f47"]; }
 
 const HOME_APPS = ["Instagram","YouTube","TikTok","Messages","X (Twitter)","Facebook","Reddit"];
-const PROTECTED = new Set(["Instagram","TikTok","X (Twitter)","Facebook","Reddit"]);
+// Single source of truth for the pre-Setup default, same as
+// core/mock_data.DEFAULT_PROTECTED_APPS on the Python side -- PROTECTED is
+// `let` (not `const`) because activateProtection() replaces it with
+// whatever's actually checked in Setup, same as the Python fix.
+const DEFAULT_PROTECTED_APPS = ["Instagram","TikTok","X (Twitter)"];
+let PROTECTED = new Set(DEFAULT_PROTECTED_APPS);
 const DOCK_APPS = ["Phone","Camera","Settings","Messages"];
 const TOP_APPS = [
   {name:"Instagram", time:"1h 48m", protected:true},
@@ -276,15 +299,99 @@ function buildDock(){
   });
 }
 
+function parseMinutes(timeStr){
+  // Mirrors core.mock_data._parse_minutes on the Python side.
+  let hours = 0, minutes = 0;
+  timeStr.split(' ').forEach(part=>{
+    if(part.endsWith('h')) hours = parseInt(part, 10);
+    else if(part.endsWith('m')) minutes = parseInt(part, 10);
+  });
+  return hours*60 + minutes;
+}
+
 function buildTopApps(){
   const wrap = document.getElementById('topApps');
   wrap.innerHTML = '';
   TOP_APPS.forEach(app=>{
     const row = document.createElement('div');
     row.className = 'app-row';
-    row.innerHTML = `<span class="name">${app.name}${app.protected?'<span class="badge">Protected</span>':''}</span><span class="time">${app.time}</span>`;
+    // Badge reflects live PROTECTED state, not a static field -- same fix
+    // as ui/widgets/app_row.py on the Python side.
+    row.innerHTML = `<span class="name">${app.name}${PROTECTED.has(app.name)?'<span class="badge">Protected</span>':''}</span><span class="time">${app.time}</span>`;
     wrap.appendChild(row);
   });
+}
+
+function describeRingSegment(cx, cy, rOuter, rInner, startDeg, endDeg){
+  // Builds an SVG path for one donut/ring segment (an annulus sector),
+  // same technique as ui/widgets/usage_ring_chart.py's QPainterPath
+  // construction. 0deg = 12 o'clock, positive = clockwise.
+  function polar(r, deg){
+    const rad = (deg - 90) * Math.PI/180;
+    return [cx + r*Math.cos(rad), cy + r*Math.sin(rad)];
+  }
+  const [x1,y1] = polar(rOuter, startDeg);
+  const [x2,y2] = polar(rOuter, endDeg);
+  const [x3,y3] = polar(rInner, endDeg);
+  const [x4,y4] = polar(rInner, startDeg);
+  const largeArc = (endDeg - startDeg) > 180 ? 1 : 0;
+  return `M ${x1} ${y1} A ${rOuter} ${rOuter} 0 ${largeArc} 1 ${x2} ${y2} `
+       + `L ${x3} ${y3} A ${rInner} ${rInner} 0 ${largeArc} 0 ${x4} ${y4} Z`;
+}
+
+function buildRingChart(){
+  // Segment colors/proportions come straight from TOP_APPS + glyphFor(),
+  // same as core.mock_data.usage_breakdown() -- no separate dataset.
+  const svg = document.getElementById('ringChart');
+  svg.innerHTML = '';
+  const total = TOP_APPS.reduce((sum, app) => sum + parseMinutes(app.time), 0);
+  if(total <= 0) return;
+  const cx = 56, cy = 56, rOuter = 52, rInner = 36, gapDeg = 3;
+  let angle = 0;
+  const NS = 'http://www.w3.org/2000/svg';
+  TOP_APPS.forEach(app=>{
+    const [, color] = glyphFor(app.name);
+    const span = (parseMinutes(app.time)/total) * 360;
+    const drawn = Math.max(span - gapDeg, 0);
+    const path = document.createElementNS(NS, 'path');
+    path.setAttribute('d', describeRingSegment(cx, cy, rOuter, rInner, angle, angle+drawn));
+    path.setAttribute('fill', color);
+    // Reuses the palette's existing #3a3f47 border color, same reasoning
+    // as the Python widget: X (Twitter)'s own color (#1d2026) is identical
+    // to this card's background, so without an outline that segment would
+    // be invisible.
+    path.setAttribute('stroke', '#3a3f47');
+    path.setAttribute('stroke-width', '1');
+    svg.appendChild(path);
+    angle += span;
+  });
+}
+
+function buildUsageLegend(){
+  const wrap = document.getElementById('usageLegend');
+  wrap.innerHTML = '';
+  TOP_APPS.forEach(app=>{
+    const [, color] = glyphFor(app.name);
+    const row = document.createElement('div');
+    row.className = 'legend-row';
+    row.innerHTML = `<span class="legend-dot" style="background:${color}"></span>`
+      + `<span class="name">${app.name}</span><span class="time">${app.time}</span>`;
+    wrap.appendChild(row);
+  });
+}
+
+function refreshSimulateBtn(){
+  const btn = document.getElementById('simulateBtn');
+  const isProtected = PROTECTED.has('Instagram');
+  btn.disabled = !isProtected;
+  btn.style.opacity = isProtected ? '1' : '0.4';
+  btn.style.cursor = isProtected ? 'pointer' : 'not-allowed';
+  btn.title = isProtected ? '' : "Instagram isn't currently protected — nothing to simulate.";
+}
+
+function onSimulateClick(){
+  // Defense in depth, same as DashboardScreen._on_simulate_clicked in Python.
+  if(PROTECTED.has('Instagram')) startInterruption('Instagram');
 }
 
 function buildProtectableApps(){
@@ -327,6 +434,19 @@ function showFakeApp(name){
 
 function activateProtection(){
   currentIntention = document.getElementById('intentionInput').value || currentIntention;
+  // The actual fix: read what's really checked and replace PROTECTED with
+  // it, instead of leaving the checkboxes purely decorative (same bug as
+  // ui/intention_setup.py + main.py's _on_intention_activated on Python
+  // side, before it was fixed).
+  const newProtected = new Set();
+  PROTECTABLE_APPS.forEach(name=>{
+    const id = 'chk_'+name.replace(/[^a-zA-Z]/g,'');
+    const cb = document.getElementById(id);
+    if(cb && cb.checked) newProtected.add(name);
+  });
+  PROTECTED = newProtected;
+  buildTopApps();
+  refreshSimulateBtn();
   go('dashboard');
 }
 
@@ -334,6 +454,9 @@ buildAppGrid();
 buildDock();
 buildTopApps();
 buildProtectableApps();
+buildRingChart();
+buildUsageLegend();
+refreshSimulateBtn();
 </script>
 </body>
 </html>
