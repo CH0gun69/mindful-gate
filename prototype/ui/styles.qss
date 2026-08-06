@@ -231,19 +231,104 @@ QLabel#fakeAppTitle {
     font-size: 17px;
     font-weight: 600;
 }
-QLabel#fakeAppNote {
-    background-color: transparent;
-    color: #9aa1ab;
-    font-size: 12px;
-    font-style: italic;
-}
-QFrame#fakeAppCard {
-    background-color: #1d2026;
+/* --- feed style: Instagram / Facebook / X (Twitter) / Reddit ---
+   Leans neutral/realistic rather than mindful-gate's own teal-accent
+   design system on purpose -- this is meant to read as "a real app",
+   not as part of this app's own UI. */
+QFrame#feedPostCard {
+    background-color: #1c1c1e;
     border-radius: 10px;
-    padding: 18px;
 }
-QFrame#fakeAppCard QLabel {
+QLabel#feedUsername {
     background-color: transparent;
-    color: #c9cdd3;
+    color: #f2f2f2;
+    font-weight: 600;
+    font-size: 13px;
+}
+QLabel#feedPhoto {
+    background-color: #0d0d0d;
+    border-radius: 0px;
+}
+QLabel#feedCaption {
+    background-color: transparent;
+    color: #cfcfcf;
+    font-size: 12px;
+}
+
+/* --- shorts style: TikTok / YouTube --- */
+QFrame#shortsWrap {
+    background-color: #000000;
+}
+QLabel#shortsImage {
+    background-color: #000000;
+}
+QFrame#shortsCaptionBar {
+    background-color: rgba(0, 0, 0, 0.55);
+}
+QLabel#shortsUsername {
+    background-color: transparent;
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 13px;
+}
+QLabel#shortsCaption {
+    background-color: transparent;
+    color: #e8e8e8;
+    font-size: 12px;
+}
+QFrame#shortsIconsCol {
+    background-color: transparent;
+}
+QLabel#shortsEngageIcon {
+    background-color: transparent;
+    color: #ffffff;
+    font-size: 22px;
+}
+QLabel#shortsEngageCount {
+    background-color: transparent;
+    color: #d8d8d8;
+    font-size: 10px;
+    font-weight: 600;
+}
+
+/* --- messages style --- */
+QFrame#messagesSidebar {
+    background-color: #17181a;
+    border-right: 1px solid #26282c;
+}
+QWidget#messagesChatView {
+    background-color: #14161a;
+}
+QFrame#messagesContactRow {
+    background-color: transparent;
+    border-radius: 8px;
+}
+QFrame#messagesContactRowActive {
+    background-color: #23272f;
+    border-radius: 8px;
+}
+QLabel#messagesContactName {
+    background-color: transparent;
+    color: #eef0f2;
+    font-size: 12px;
+    font-weight: 600;
+}
+QLabel#messagesContactPreview {
+    background-color: transparent;
+    color: #8a8f98;
+    font-size: 11px;
+}
+QLabel#chatBubbleMe {
+    background-color: #8fd3c7;
+    color: #0e1012;
+    border-radius: 14px;
+    padding: 8px 12px;
+    font-size: 13px;
+}
+QLabel#chatBubbleThem {
+    background-color: #2a2d33;
+    color: #eef0f2;
+    border-radius: 14px;
+    padding: 8px 12px;
     font-size: 13px;
 }

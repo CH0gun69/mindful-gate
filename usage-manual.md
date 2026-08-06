@@ -89,7 +89,13 @@ Tap any app icon and one of two things happens:
 
 ### Fake App screen
 
-A generic mock "app opened" view — header with the app's name/icon, a few placeholder content cards, clearly labeled as fake. Every app (protected or not) uses this same screen, just re-skinned with that app's name/color.
+A mock "app opened" view — same header (real brand logo, app name) for every app, then one of 3 body styles depending on which app it is:
+
+- **Feed** (Instagram, Facebook, X (Twitter), Reddit) — a short vertical feed of mock post cards (avatar, username, photo, caption)
+- **Shorts** (TikTok, YouTube) — one full-screen vertical photo with a caption overlay and mock engagement icons
+- **Messages** (Messages) — a contact sidebar + a mock chat bubble conversation
+
+All content (photos, captions, usernames, contacts) is local hardcoded mock data — no network access, works fully offline.
 
 - **← (back arrow, top-left)** → returns to the Phone Home screen
 
@@ -168,13 +174,18 @@ mindful-gate/
     │   ├── intention_setup.py ← Setup screen
     │   ├── interruption.py    ← Interruption ("still on purpose?") screen
     │   ├── insights.py        ← Insights screen
-    │   ├── fake_app_screen.py ← generic "you opened the app" mock screen
+    │   ├── fake_app_screen.py ← "you opened the app" mock screen — one configurable
+    │   │                         widget with 3 body styles (feed/shorts/messages)
     │   ├── styles.qss         ← one stylesheet for the whole app (dark theme, teal accent)
     │   └── widgets/
-    │       ├── app_icon.py    ← tappable app icon (avatar + label) — used by phone_home
-    │       ├── stat_card.py   ← one stat box in Dashboard (e.g. "87 Unlocks")
-    │       └── usage_ring_chart.py ← Dashboard's screen-time donut chart
-    └── assets/                ← icons/images (currently empty placeholders)
+    │       ├── app_icon.py     ← tappable app icon (avatar + label) — used by phone_home
+    │       ├── stat_card.py    ← one stat box in Dashboard (e.g. "87 Unlocks")
+    │       ├── usage_ring_chart.py ← Dashboard's screen-time donut chart
+    │       ├── svg_icon.py     ← shared real-brand-logo SVG rendering (AppIcon + FakeAppScreen)
+    │       └── image_utils.py  ← shared cover-crop helper for FakeAppScreen's mock photos
+    └── assets/
+        ├── icons/              ← real brand-logo SVGs (Simple Icons)
+        └── images/             ← local CC0 mock feed/shorts photos (Picsum Photos)
 ```
 
 **Rule of thumb:** `core/` holds data with no UI code in it; `ui/` holds one file per full screen; `ui/widgets/` holds small reusable pieces used *inside* those screens. If you're adding a new full screen, it goes in `ui/`; if you're adding a small reusable component, it goes in `ui/widgets/`.
