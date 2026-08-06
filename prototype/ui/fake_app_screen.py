@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QLabel, QPushButton, QFrame,
-    QSizePolicy, QScrollArea,
+    QSizePolicy,
 )
 from PySide6.QtCore import Qt, Signal, QTimer
 
@@ -11,6 +11,7 @@ from core.mock_data import (
 )
 from ui.widgets.svg_icon import white_svg_pixmap
 from ui.widgets.image_utils import cover_pixmap
+from ui.widgets.elastic_scroll_area import ElasticScrollArea
 
 
 class FakeAppScreen(QWidget):
@@ -72,15 +73,17 @@ class FakeAppScreen(QWidget):
         return header
 
     def _wrap_in_scroll_area(self, content, object_name):
-        """Wrap content in a QScrollArea so it scrolls when it overflows
-        the visible window instead of clipping or forcing the window
-        itself to grow -- setWidgetResizable(True) is what makes content
-        stay full-width and only ever grow in height, and content inside a
-        scroll area's viewport doesn't propagate its natural size upward
-        as a minimum-size constraint on the window the way an unwrapped
-        widget would. Used by the feed style and the messages chat view;
-        shorts stays single-item/full-bleed, so it's never wrapped."""
-        scroll = QScrollArea()
+        """Wrap content in an ElasticScrollArea so it scrolls (with a
+        cosmetic iOS-style rubber-band bounce at the ends) when it
+        overflows the visible window instead of clipping or forcing the
+        window itself to grow -- setWidgetResizable(True) is what makes
+        content stay full-width and only ever grow in height, and content
+        inside a scroll area's viewport doesn't propagate its natural size
+        upward as a minimum-size constraint on the window the way an
+        unwrapped widget would. Used by the feed style and the messages
+        chat view; shorts stays single-item/full-bleed, so it's never
+        wrapped."""
+        scroll = ElasticScrollArea()
         scroll.setObjectName(object_name)
         scroll.setWidgetResizable(True)
         scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
