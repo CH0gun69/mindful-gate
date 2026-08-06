@@ -1,8 +1,8 @@
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QLabel, QPushButton, QFrame,
-    QSizePolicy,
+    QSizePolicy, QScrollArea,
 )
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Qt, Signal, QTimer
 
 from core.mock_data import (
     glyph_for, icon_path_for, style_for,
@@ -71,6 +71,23 @@ class FakeAppScreen(QWidget):
 
         return header
 
+    def _wrap_in_scroll_area(self, content, object_name):
+        """Wrap content in a QScrollArea so it scrolls when it overflows
+        the visible window instead of clipping or forcing the window
+        itself to grow -- setWidgetResizable(True) is what makes content
+        stay full-width and only ever grow in height, and content inside a
+        scroll area's viewport doesn't propagate its natural size upward
+        as a minimum-size constraint on the window the way an unwrapped
+        widget would. Used by the feed style and the messages chat view;
+        shorts stays single-item/full-bleed, so it's never wrapped."""
+        scroll = QScrollArea()
+        scroll.setObjectName(object_name)
+        scroll.setWidgetResizable(True)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        scroll.setFrameShape(QFrame.Shape.NoFrame)
+        scroll.setWidget(content)
+        return scroll
+
     def set_app(self, name):
         glyph, color = glyph_for(name)
         self.title.setText(name)
@@ -111,8 +128,8 @@ class FakeAppScreen(QWidget):
     # ===== "feed" style: Instagram / Facebook / X (Twitter) / Reddit =====
 
     def _build_feed_body(self, name, color):
-        wrap = QWidget()
-        layout = QVBoxLayout(wrap)
+        inner = QWidget()
+        layout = QVBoxLayout(inner)
         layout.setContentsMargins(16, 16, 16, 16)
         layout.setSpacing(16)
 
@@ -121,7 +138,7 @@ class FakeAppScreen(QWidget):
             layout.addWidget(self._build_feed_post(username, caption, color, image_index, name))
 
         layout.addStretch()
-        return wrap
+        return self._wrap_in_scroll_area(inner, "feedScrollArea")
 
     def _build_feed_post(self, username, caption, color, image_index, app_name):
         """One post card. Reddit's config asks for a genuinely different
@@ -290,8 +307,22 @@ class FakeAppScreen(QWidget):
         btn.setFlat(True)
         btn.setCursor(Qt.CursorShape.PointingHandCursor)
         if flash_color:
-            btn.setProperty("flashColor", flash_color)
+            btn.clicked.connect(
+                lambda checked=False, b=btn, c=flash_color: self._flash_button(b, c)
+            )
         return btn
+
+    def _flash_button(self, btn, color):
+        """Cosmetic-only press feedback: briefly recolor the button on
+        click, then revert -- e.g. Instagram's heart flashing red, Reddit's
+        arrow highlighting orange. No real like/vote/etc. state is tracked
+        or persisted anywhere; this is purely a "yep, that registered"
+        visual cue, same as every other screen's placeholder content.
+        Applied as an instance-level stylesheet override (not a shared QSS
+        rule) since buttons sharing one object name -- e.g. X's 4 icons --
+        each need their own different flash color."""
+        btn.setStyleSheet(f"color: {color};")
+        QTimer.singleShot(450, lambda: btn.setStyleSheet(""))
 
     # ===== "shorts" style: TikTok / YouTube =====
 
@@ -401,9 +432,9 @@ class FakeAppScreen(QWidget):
         return sidebar
 
     def _build_chat_view(self):
-        chat_wrap = QWidget()
-        chat_wrap.setObjectName("messagesChatView")
-        layout = QVBoxLayout(chat_wrap)
+        inner = QWidget()
+        inner.setObjectName("messagesChatView")
+        layout = QVBoxLayout(inner)
         layout.setContentsMargins(12, 12, 12, 12)
         layout.setSpacing(8)
 
@@ -411,7 +442,7 @@ class FakeAppScreen(QWidget):
             layout.addWidget(self._build_chat_bubble(sender, text))
         layout.addStretch()
 
-        return chat_wrap
+        return self._wrap_in_scroll_area(inner, "messagesChatScrollArea")
 
     def _build_chat_bubble(self, sender, text):
         is_me = sender == "me"

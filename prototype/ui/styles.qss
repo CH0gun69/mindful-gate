@@ -317,6 +317,32 @@ QLabel#feedCommentCount {
     font-size: 11px;
 }
 
+/* Scrollable feed/messages content -- QWidget's own global rule already
+   covers the dark background; this just removes the frame border and
+   gives the vertical scrollbar a slim, dark-theme-appropriate look
+   instead of Qt's default light one. */
+QScrollArea#feedScrollArea, QScrollArea#messagesChatScrollArea {
+    border: none;
+}
+QScrollArea#feedScrollArea QScrollBar:vertical,
+QScrollArea#messagesChatScrollArea QScrollBar:vertical {
+    background: transparent;
+    width: 6px;
+    margin: 0px;
+}
+QScrollArea#feedScrollArea QScrollBar::handle:vertical,
+QScrollArea#messagesChatScrollArea QScrollBar::handle:vertical {
+    background: #3a3f47;
+    border-radius: 3px;
+    min-height: 24px;
+}
+QScrollArea#feedScrollArea QScrollBar::add-line:vertical,
+QScrollArea#feedScrollArea QScrollBar::sub-line:vertical,
+QScrollArea#messagesChatScrollArea QScrollBar::add-line:vertical,
+QScrollArea#messagesChatScrollArea QScrollBar::sub-line:vertical {
+    height: 0px;
+}
+
 /* --- shorts style: TikTok / YouTube --- */
 QFrame#shortsWrap {
     background-color: #000000;
