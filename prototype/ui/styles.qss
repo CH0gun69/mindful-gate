@@ -264,14 +264,23 @@ QPushButton#feedActionIcon {
     border: none;
     color: #e8e8e8;
     font-size: 20px;
-    padding: 2px 6px;
+    /* Fixed square (not padding-around-content) so the click-flash
+       background forms a consistent circle regardless of how wide each
+       glyph happens to render -- auto-sizing to content made the
+       highlight crop unevenly around some icons (looked uncanny,
+       confirmed via manual testing). */
+    min-width: 34px; max-width: 34px;
+    min-height: 34px; max-height: 34px;
+    border-radius: 17px;
 }
 QPushButton#feedActionIconSmall {
     background-color: transparent;
     border: none;
     color: #a8a8a8;
     font-size: 15px;
-    padding: 2px 6px;
+    min-width: 28px; max-width: 28px;
+    min-height: 28px; max-height: 28px;
+    border-radius: 14px;
 }
 
 /* Facebook action row: full-width labeled buttons + thin dividers */
@@ -286,6 +295,7 @@ QPushButton#feedActionLabeled {
     font-size: 12px;
     font-weight: 600;
     padding: 8px 0px;
+    border-radius: 8px;
 }
 QFrame#feedActionDivider {
     background-color: #2a2a2c;

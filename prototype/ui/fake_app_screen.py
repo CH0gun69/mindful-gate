@@ -315,6 +315,11 @@ class FakeAppScreen(QWidget):
             )
         return btn
 
+    # Reddit's vote arrows kept the simpler text-color-only flash rather
+    # than the background pill used everywhere else -- compared both live
+    # and preferred the plain look here specifically.
+    _COLOR_ONLY_FLASH = {"voteArrowUp", "voteArrowDown"}
+
     def _flash_button(self, btn, color):
         """Cosmetic-only press feedback: briefly recolor the button on
         click, then revert -- e.g. Instagram's heart flashing red, Reddit's
@@ -325,19 +330,22 @@ class FakeAppScreen(QWidget):
         rule) since buttons sharing one object name -- e.g. X's 4 icons --
         each need their own different flash color.
 
-        Sets both a text-color change AND a translucent background pill --
-        color emoji glyphs (💬, 🔖, 👍) are rendered through the system's
-        color-emoji font as multi-color glyphs with their own embedded
-        color data, so `color:` has no visible effect on them (confirmed by
-        manual testing: plain-symbol buttons like ♡/➤/▲/▼ flashed fine,
-        every emoji-led one didn't). A background fill is visible
-        regardless of glyph type, so it's the part doing the real work here
-        -- the text-color change is just a free upgrade for the buttons
-        where it does apply."""
-        r, g, b = (int(color[i:i+2], 16) for i in (1, 3, 5))
-        btn.setStyleSheet(
-            f"color: {color}; background-color: rgba({r}, {g}, {b}, 60); border-radius: 8px;"
-        )
+        Most buttons get a text-color change AND a translucent background
+        pill -- color emoji glyphs (💬, 🔖, 👍) are rendered through the
+        system's color-emoji font as multi-color glyphs with their own
+        embedded color data, so `color:` alone has no visible effect on
+        them (confirmed by manual testing: plain-symbol buttons like
+        ♡/➤ flashed fine with color alone, every emoji-led one didn't).
+        border-radius is deliberately NOT set here -- it comes from each
+        button's own QSS rule instead (a fixed circle for icon buttons,
+        so the pill doesn't crop unevenly around each glyph's own
+        inconsistent rendered bounding box; keeps Facebook's already-fine
+        rounded-rect look as-is)."""
+        if btn.objectName() in self._COLOR_ONLY_FLASH:
+            btn.setStyleSheet(f"color: {color};")
+        else:
+            r, g, b = (int(color[i:i+2], 16) for i in (1, 3, 5))
+            btn.setStyleSheet(f"color: {color}; background-color: rgba({r}, {g}, {b}, 60);")
         QTimer.singleShot(450, lambda: btn.setStyleSheet(""))
 
     # ===== "shorts" style: TikTok / YouTube =====
