@@ -336,16 +336,33 @@ class FakeAppScreen(QWidget):
         embedded color data, so `color:` alone has no visible effect on
         them (confirmed by manual testing: plain-symbol buttons like
         ♡/➤ flashed fine with color alone, every emoji-led one didn't).
-        border-radius is deliberately NOT set here -- it comes from each
-        button's own QSS rule instead (a fixed circle for icon buttons,
-        so the pill doesn't crop unevenly around each glyph's own
-        inconsistent rendered bounding box; keeps Facebook's already-fine
-        rounded-rect look as-is)."""
+
+        border-radius is set explicitly in this same inline stylesheet
+        (not left to cascade in from the button's own class-level QSS
+        rule) -- confirmed via manual testing that once an instance-level
+        setStyleSheet() call touches background-color without also
+        specifying border-radius in that same call, Qt's style-sheet
+        renderer can fall back to painting a plain square background
+        instead of honoring the class rule's rounding. Icon buttons (a
+        fixed square) get a radius computed from their own actual size so
+        it's always a perfect circle centered on the button regardless of
+        exact pixel dimensions, rather than a hardcoded value that could
+        drift out of sync with ui/styles.qss."""
         if btn.objectName() in self._COLOR_ONLY_FLASH:
             btn.setStyleSheet(f"color: {color};")
+            QTimer.singleShot(450, lambda: btn.setStyleSheet(""))
+            return
+
+        r, g, b = (int(color[i:i+2], 16) for i in (1, 3, 5))
+        if btn.objectName() in ("feedActionIcon", "feedActionIconSmall"):
+            radius = min(btn.width(), btn.height()) // 2  # perfect circle
         else:
-            r, g, b = (int(color[i:i+2], 16) for i in (1, 3, 5))
-            btn.setStyleSheet(f"color: {color}; background-color: rgba({r}, {g}, {b}, 60);")
+            radius = 8  # Facebook's labeled buttons: matches their QSS rounding
+
+        btn.setStyleSheet(
+            f"color: {color}; background-color: rgba({r}, {g}, {b}, 60); "
+            f"border-radius: {radius}px; border: none;"
+        )
         QTimer.singleShot(450, lambda: btn.setStyleSheet(""))
 
     # ===== "shorts" style: TikTok / YouTube =====
