@@ -63,49 +63,46 @@ this commit — the 4-point plan checklist below all passed:
 No further verification needed on this specific feature — if picking this up again, this
 note is just provenance, not a to-do.
 
-## TODO: web demo (docs/index.html) is stale — needs a parity pass
+## Web demo (docs/index.html) — brought to parity 2026-08-07 ✅
 
 `docs/index.html` is a self-contained HTML/JS/CSS mirror of `prototype/`, deployed via
 GitHub Pages at `https://ch0gun69.github.io/mindful-gate/` (source: `main` branch, `/docs`
-path — confirmed via `gh api repos/CH0gun69/mindful-gate/pages`). Comments in that file
-say it deliberately mirrors the Python app's logic 1:1 (`APP_GLYPHS`, `usageColor()`,
-`describeRingSegment()`, etc. are direct JS ports of `core/mock_data.py` /
-`ui/widgets/usage_ring_chart.py`). It has **not** been updated to match anything from this
-entire session — confirmed stale as of the checkpoint at commit `6284901`. Known gaps, in
-the order they were built on the Python side:
+path). It had drifted stale across this whole session (last synced before any of this
+session's Python work landed) — that gap is now closed as of the commit that added this
+note. All 6 originally-documented gaps plus everything that landed afterward were ported:
 
-1. **Interruption screen's app icon**: still a single static emoji per app
-   (`interruptGlyph.textContent = glyph`) — predates even this session's first fix (real
-   brand-logo SVG via `icon_path_for()`/`white_svg_pixmap()` on the Python side, now
-   `avatarInnerHTML()`'s masked-SVG approach already used elsewhere in this same HTML file
-   for Phone Home/Fake App, just never applied to the Interruption screen's icon).
-2. **No protection levels at all**: no per-app level (1/2/3), no countdown text on
-   Continue, no breathing circle, no reaffirm-tap step. `startInterruption()` just shows a
-   plain "Continue" button, always immediately clickable.
-3. **No "time spent today" nudge** on either the Interruption screen or the Fake App
-   header (mirrors `core.mock_data.time_spent_today_for()` on the Python side — data
-   already available here via the existing `TOP_APPS` JS array, just not wired up).
-4. **No merged "Set Your Intention" screen**: still two separate screens
-   (`#screen-setup`, `#screen-insights`), `Setup` still one-way (`activateProtection()`
-   commits but nothing ever turns protection off), no per-app protection levels, no
-   animated switch/slider (the whole `ToggleSwitch`/`LevelSlider` redesign from this
-   session's last commit has no JS equivalent). `Insights` screen still exists as-is
-   (Python side deleted it entirely).
-5. **Ring chart stroke still ambient-tinted**: `buildRingChart()`'s
-   `strokeColor = usageColor(isHighUsage())` is exactly the pattern removed on the Python
-   side this session (`ui/dashboard.py`) — the ambient signal should live only on the big
-   screen-time text, not the ring's per-segment stroke.
-6. **Palette not desaturated**: `AMBIENT_COLOR_NORMAL`/`AMBIENT_COLOR_HIGH`/`APP_GLYPHS`
-   here are still the original, more-saturated hex values — Python side's
-   `core/mock_data.py` has the ~13%-desaturated versions (e.g. teal `#8fd3c7` → `#93cfc4`,
-   amber `#e0a96d` → `#d9a974`, each app's own accent similarly softened). This file's CSS
-   custom properties (`--accent`, `--accent-hover`) need the same update.
+- Interruption screen's icon is now the same masked-SVG brand icon (`avatarInnerHTML()`)
+  used everywhere else, not a static emoji.
+- Full per-app protection levels (1/2/3): `PROTECTION_LEVELS` JS object mirrors
+  `core.mock_data.PROTECTION_LEVELS` exactly, drives a live countdown on Continue Anyway,
+  a CSS-animated breathing circle (`@keyframes breathe`, resting transform = min diameter
+  so it freezes rather than snapping when the delay elapses on level 3), and a reaffirm
+  chip for level 3.
+- "Time spent today" nudge on both Interruption and Fake App, sourced from the existing
+  `TOP_APPS` array, gracefully omitted when absent.
+- Setup + Insights merged into one "Set Your Intention" screen: `#screen-insights`
+  deleted entirely, per-app rows use a CSS checkbox-driven toggle switch (not a checkbox)
+  + a native `<input type="range">` (jumps to click position natively, no custom hit-test
+  JS needed) revealed only while that app's switch is on. No master toggle on this screen
+  at all — Dashboard's Focus Mode button (`toggleFocusMode()`) is the only place
+  `PROTECTION_ENABLED` changes, seeded correctly on page load (`applyFocusButtonState()`)
+  so it never starts visually desynced from the true default-on state.
+  `PROTECTED`/`APP_LEVELS`/`currentIntention` are all live-updated straight from the
+  per-app switches/sliders/message field, no commit button.
+- Ring chart stroke is a fixed neutral `#3a3f47`, no longer ambient-tinted.
+  `AMBIENT_COLOR_NORMAL`/`HIGH` and every `APP_GLYPHS` entry updated to the current
+  twice-desaturated Python values.
 
-Recommended approach when picking this up: work top-to-bottom through the list above,
-porting each Python-side change into the matching JS/CSS in `docs/index.html`, verifying
-in a real browser (not just "no console error") after each item, then commit once all six
-are done rather than piecemeal (this file has no build step / no diffing tool to catch a
-partial port going stale again).
+Verified via a local preview (`.claude/launch.json`'s `web-demo` config,
+`python3 -m http.server --directory docs`) clicking through the full flow: Phone Home →
+Instagram at level 1 and level 3 (countdown, breathing circle, reaffirm unlock all
+confirmed via direct JS state reads, not just visual) → Fake App's time-spent subtitle →
+Dashboard's ring stroke/palette → Set Your Intention's switches/sliders → Focus Mode
+toggle gating apps on/off end-to-end in both directions. Zero console errors throughout.
+
+This remains a manual, one-time port (per the original KISS decision, no sync tooling) --
+whoever picks up the next round of Python-side changes will need to repeat this pass by
+diffing against this note's "as of" state, same as this pass did against the old note.
 
 ## Architecture notes
 

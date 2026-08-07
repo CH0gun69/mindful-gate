@@ -7,7 +7,7 @@
 <style>
 :root{
   --bg:#14161a; --bg2:#1d2026; --border:#22262c; --border2:#3a3f47;
-  --text:#eef0f2; --muted:#9aa1ab; --dim:#c9cdd3; --accent:#8fd3c7; --accent-hover:#a3ded3;
+  --text:#eef0f2; --muted:#9aa1ab; --dim:#c9cdd3; --accent:#93cfc4; --accent-hover:#a7dad1;
 }
 *{box-sizing:border-box;}
 html,body{
@@ -41,7 +41,7 @@ html,body{
   background:none; border:none; display:flex; flex-direction:column; align-items:center;
   gap:6px; cursor:pointer; padding:6px; border-radius:12px;
 }
-.app-icon:active{ background:rgba(143,211,199,.15); }
+.app-icon:active{ background:rgba(147,207,196,.15); }
 .app-avatar{
   width:52px; height:52px; border-radius:14px; display:flex; align-items:center;
   justify-content:center; font-size:24px; color:#fff;
@@ -123,20 +123,113 @@ html,body{
   cursor:pointer; padding:8px; display:block; margin:0 auto;
 }
 
-/* checkboxes / input for setup */
-.checkbox-row{ display:flex; align-items:center; gap:8px; padding:6px 0; font-size:14px; }
+/* Dashboard's Focus Mode button: two explicit states (mirrors
+   QPushButton#focusBtnIdle/focusBtnActive on the Python side) -- idle
+   reads as neutral/waiting-to-be-clicked gray, active reads as a calm
+   green (not red -- this app's ambient-tint work already established
+   red/alarming styling is off-limits). Toggles in place, no navigation. */
+.btn-focus-idle{
+  width:100%; background:var(--border2); color:#eef0f2; border:none; border-radius:10px;
+  padding:12px; font-weight:600; font-size:14px; cursor:pointer; margin-top:8px;
+}
+.btn-focus-idle:hover{ background:#454b54; }
+.btn-focus-active{
+  width:100%; background:#4caf65; color:#0e1012; border:none; border-radius:10px;
+  padding:12px; font-weight:600; font-size:14px; cursor:pointer; margin-top:8px;
+}
+.btn-focus-active:hover{ background:#5cc077; }
+
 .intention-input{
   width:100%; background:var(--bg2); border:1px solid var(--border2); border-radius:8px;
   padding:10px; font-size:14px; color:var(--text); margin-top:6px;
 }
 
+/* Set Your Intention screen: one row per app -- icon/name + an animated
+   Protect switch, and (only while that switch is on) a collapsible
+   labeled level slider. Mirrors ui/protection_customization.py exactly:
+   no master toggle here at all, everything applies live. */
+.intent-row{ background:var(--bg2); border-radius:8px; padding:10px; margin-bottom:10px; }
+.intent-row-top{ display:flex; align-items:center; gap:10px; }
+.intent-row-top .name{ flex:1; font-weight:500; }
+.intent-avatar{
+  width:40px; height:40px; border-radius:10px; display:flex; align-items:center;
+  justify-content:center; color:#fff; font-size:18px; font-weight:600; flex-shrink:0;
+}
+
+/* Animated on/off switch -- checkbox-driven CSS toggle, same visual
+   language (rounded track, sliding circular thumb) as
+   ui/widgets/toggle_switch.py's ToggleSwitch. */
+.switch{ position:relative; display:inline-block; width:44px; height:24px; flex-shrink:0; }
+.switch input{ opacity:0; width:0; height:0; position:absolute; }
+.switch .track{
+  position:absolute; inset:0; background:var(--border2); border-radius:12px;
+  transition:background .175s ease; cursor:pointer;
+}
+.switch .thumb{
+  position:absolute; top:2px; left:2px; width:20px; height:20px; background:#eef0f2;
+  border-radius:50%; transition:transform .175s ease;
+}
+.switch input:checked + .track{ background:var(--accent); }
+.switch input:checked + .track .thumb{ transform:translateX(20px); }
+
+/* Level control -- collapses/expands via max-height transition (same
+   effect as the Python side's QPropertyAnimation on maximumHeight).
+   Native <input type="range"> already jumps to click position on its
+   own, matching LevelSlider's click-anywhere-jumps-to-nearest behavior
+   with no extra JS needed. */
+.level-row{ max-height:0; overflow:hidden; transition:max-height .18s ease; }
+.level-row.open{ max-height:40px; margin-top:8px; }
+.level-row-inner{ display:flex; align-items:center; gap:8px; padding-left:50px; }
+.level-label{ font-size:13px; font-weight:600; color:var(--dim); white-space:nowrap; }
+.level-slider{
+  flex:1; -webkit-appearance:none; appearance:none; height:4px;
+  background:var(--border2); border-radius:2px; outline:none;
+}
+.level-slider::-webkit-slider-thumb{
+  -webkit-appearance:none; width:16px; height:16px; border-radius:50%;
+  background:#eef0f2; cursor:pointer;
+}
+.level-slider::-moz-range-thumb{
+  width:16px; height:16px; border-radius:50%; background:#eef0f2; border:none; cursor:pointer;
+}
+.level-slider:disabled::-webkit-slider-thumb{ background:#6b7076; cursor:default; }
+
 /* interruption screen */
 .interrupt-body{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:32px; text-align:center; gap:16px; }
-.interrupt-icon{ font-size:64px; }
+.interrupt-avatar{
+  width:72px; height:72px; border-radius:18px; display:flex; align-items:center;
+  justify-content:center; color:#fff; font-size:36px; font-weight:600;
+}
 .interrupt-title{ font-size:18px; color:var(--muted); margin:0; }
 .interrupt-question{ font-size:28px; font-weight:700; margin:0; }
 .intention-quote{ font-size:16px; font-style:italic; color:var(--accent); padding:16px; background:var(--bg2); border-radius:10px; width:100%; }
+.time-spent-note{ color:#7d8590; font-size:12px; }
+.reaffirm-chip{
+  display:none; background:transparent; border:1px solid var(--accent); color:var(--accent);
+  border-radius:14px; padding:6px 14px; font-size:13px; cursor:pointer;
+}
+.reaffirm-chip:hover{ background:rgba(147,207,196,.1); }
+
+/* Wordless pulsing circle for the breathing phase (levels 2/3) -- resting
+   transform is the MIN diameter (36/64 of the widget's max size, matching
+   BreathingCircle's own min/max), so removing .pulsing after the delay
+   elapses (level 3, waiting on the reaffirm tap) leaves it visibly frozen
+   at rest rather than snapping to full size. */
+.breathing-circle{
+  display:none; width:64px; height:64px; border-radius:50%;
+  background:rgba(147,207,196,.4); transform:scale(.5625);
+}
+.breathing-circle.shown{ display:block; }
+.breathing-circle.pulsing{ animation:breathe 2500ms ease-in-out infinite; }
+@keyframes breathe{
+  0%, 100% { transform:scale(.5625); }
+  50% { transform:scale(1); }
+}
+
 .interrupt-actions{ width:100%; margin-top:8px; }
+.btn-secondary:disabled{ color:#6b7076; border-color:#2a2e34; cursor:default; }
+
+.fake-subtitle{ font-size:11px; color:var(--muted); margin-top:1px; }
 
 /* ===== Fake App screen ===== */
 .fake-header{ display:flex; align-items:center; gap:12px; padding:14px 16px; border-bottom:1px solid var(--border); flex-shrink:0; }
@@ -253,13 +346,16 @@ html,body{
   <div class="screen" id="screen-interruption">
     <div class="status-bar"><span class="time">9:41</span><span class="icons">●●● 5G 100%</span></div>
     <div class="interrupt-body">
-      <div class="interrupt-icon" id="interruptGlyph">📸</div>
       <p class="interrupt-title">You opened <span id="interruptAppName">Instagram</span>.</p>
       <p class="interrupt-question">Still on purpose?</p>
       <div class="intention-quote" id="interruptIntention">"Only reply to messages"</div>
+      <div class="time-spent-note" id="interruptTimeSpent"></div>
+      <button class="reaffirm-chip" id="reaffirmChip" onclick="onReaffirmClick()">Still on purpose?</button>
+      <div class="interrupt-avatar" id="interruptAvatar"></div>
+      <div class="breathing-circle" id="breathingCircle"></div>
       <div class="interrupt-actions">
-        <button class="btn-primary" id="interruptContinueBtn">Continue</button>
-        <button class="btn-secondary" onclick="go('phone_home')">Go Back</button>
+        <button class="btn-primary" onclick="clearInterruptTimers(); go('phone_home')">Go Back</button>
+        <button class="btn-secondary" id="interruptContinueBtn" disabled>Continue Anyway</button>
       </div>
     </div>
   </div>
@@ -269,7 +365,10 @@ html,body{
     <div class="fake-header">
       <button class="back-btn" onclick="go('phone_home')">←</button>
       <div class="fake-avatar" id="fakeAppAvatar"></div>
-      <span class="fake-title" id="fakeAppTitle">Instagram</span>
+      <div>
+        <div class="fake-title" id="fakeAppTitle">Instagram</div>
+        <div class="fake-subtitle" id="fakeAppSubtitle" style="display:none;"></div>
+      </div>
     </div>
     <div class="fake-app-body" id="fakeAppBody"></div>
   </div>
@@ -294,49 +393,39 @@ html,body{
         <div class="stat-card"><div class="val">143</div><div class="lab">Notifications</div></div>
       </div>
       <div class="section-label">Focus Mode</div>
-      <button class="btn-primary" onclick="go('setup')">Activate Focus Mode</button>
-      <button class="btn-link" onclick="go('insights')">View Insights →</button>
+      <button class="btn-focus-idle" id="focusBtn" onclick="toggleFocusMode()">Activate Focus Mode</button>
+      <button class="btn-link" onclick="go('setup')">Set your intention</button>
     </div>
   </div>
 
-  <!-- ===== Setup ===== -->
+  <!-- ===== Set Your Intention (merged Setup + Protection Customization;
+       Insights was removed entirely on the Python side, not merged) ===== -->
   <div class="screen" id="screen-setup">
     <div class="body-pad">
-      <h1 class="screen-title">Focus / Intention Setup</h1>
-      <div class="section-label">Protected apps</div>
-      <div id="protectableApps"></div>
-      <div class="section-label">Your intention</div>
-      <input class="intention-input" id="intentionInput" value="Only reply to messages">
-      <button class="btn-primary" onclick="activateProtection()">Activate Protection</button>
-      <button class="btn-secondary" onclick="go('dashboard')">Back</button>
-    </div>
-  </div>
-
-  <!-- ===== Insights ===== -->
-  <div class="screen" id="screen-insights">
-    <div class="body-pad">
-      <h1 class="screen-title">Insights</h1>
-      <div class="stat-row">
-        <div class="stat-card"><div class="val">12 / 18</div><div class="lab">Intentions kept</div></div>
-        <div class="stat-card"><div class="val">3h 20m</div><div class="lab">Time saved this week</div></div>
-      </div>
-      <div class="section-label">Most interrupted app</div>
-      <div class="app-row"><span class="name">Instagram</span></div>
-      <button class="btn-secondary" onclick="go('dashboard')">Back to Dashboard</button>
+      <h1 class="screen-title">Set Your Intention</h1>
+      <p class="caption" style="margin-bottom:16px;">Choose which apps to protect, how firmly each should ask you to pause, and why you're using them.</p>
+      <div id="intentionRows"></div>
+      <div class="section-label">Your message</div>
+      <input class="intention-input" id="intentionInput" value="Only reply to messages" onchange="onIntentionEdited()">
+      <button class="btn-secondary" onclick="go('dashboard')" style="margin-top:16px;">Back</button>
     </div>
   </div>
 
 </div>
 
 <script>
+// Desaturated ~13% then a further ~22% (two passes this session) --
+// matches core/mock_data.py's APP_GLYPHS exactly. Hues/lightness kept so
+// each app still reads as itself; TikTok/X barely move since they're
+// already near-black.
 const APP_GLYPHS = {
-  "Instagram": ["📸", "#e1306c"],
+  "Instagram": ["📸", "#c44d75"],
   "TikTok": ["🎵", "#111214"],
-  "X (Twitter)": ["𝕏", "#1d2026"],
-  "YouTube": ["▶", "#ff0000"],
-  "Messages": ["💬", "#34c759"],
-  "Facebook": ["📘", "#1877f2"],
-  "Reddit": ["👽", "#ff4500"],
+  "X (Twitter)": ["𝕏", "#1f2024"],
+  "YouTube": ["▶", "#d62929"],
+  "Messages": ["💬", "#4caf65"],
+  "Facebook": ["📘", "#3b7ccf"],
+  "Reddit": ["👽", "#d65829"],
 };
 function glyphFor(name){ return APP_GLYPHS[name] || [name[0].toUpperCase(), "#3a3f47"]; }
 
@@ -370,8 +459,8 @@ function avatarInnerHTML(name, size){
 const HOME_APPS = ["Instagram","YouTube","TikTok","Messages","X (Twitter)","Facebook","Reddit"];
 // Single source of truth for the pre-Setup default, same as
 // core/mock_data.DEFAULT_PROTECTED_APPS on the Python side -- PROTECTED is
-// `let` (not `const`) because activateProtection() replaces it with
-// whatever's actually checked in Setup, same as the Python fix.
+// `let` (not `const`) because the Set Your Intention screen's per-app
+// switches mutate it live, same as the Python side's protected_apps set.
 const DEFAULT_PROTECTED_APPS = ["Instagram","TikTok","X (Twitter)"];
 let PROTECTED = new Set(DEFAULT_PROTECTED_APPS);
 const DOCK_APPS = ["Phone","Camera","Settings","Messages"];
@@ -384,17 +473,48 @@ const TOP_APPS = [
 ];
 const PROTECTABLE_APPS = ["Instagram","TikTok","X (Twitter)","YouTube","Facebook","Reddit"];
 let currentIntention = "Only reply to messages";
+const DEFAULT_INTENTION = "Only reply to messages";
+
+function timeSpentTodayFor(name){
+  // Mirrors core.mock_data.time_spent_today_for() -- None/falsy when the
+  // app has no mock usage entry, so callers can omit the nudge gracefully.
+  const app = TOP_APPS.find(a => a.name === name);
+  return app ? app.time : null;
+}
+
+// Per-app protection level (1/2/3) and the on/off state -- mirrors
+// core/mock_data.DEFAULT_APP_PROTECTION_LEVELS and main.py's
+// protection_enabled. protection_enabled lives ONLY on Dashboard's Focus
+// Mode button now (toggleFocusMode()) -- the Set Your Intention screen has
+// no master toggle of its own, same split as this session's Python fixes.
+const DEFAULT_APP_PROTECTION_LEVELS = {};
+PROTECTABLE_APPS.forEach(name => DEFAULT_APP_PROTECTION_LEVELS[name] = 1);
+let APP_LEVELS = Object.assign({}, DEFAULT_APP_PROTECTION_LEVELS);
+let PROTECTION_ENABLED = true;
+
+// Behavior per interruption level -- mirrors core.mock_data.PROTECTION_LEVELS
+// exactly (delay seconds Continue Anyway stays disabled, whether the
+// breathing circle shows, whether the delay elapsing requires an
+// additional reaffirm tap instead of auto-unlocking).
+const PROTECTION_LEVELS = {
+  1: { delay: 3, breathing: false, reaffirm: false },
+  2: { delay: 7, breathing: true, reaffirm: false },
+  3: { delay: 12, breathing: true, reaffirm: true },
+};
+const BREATHING_CYCLE_MS = 2500;
 
 // Ambient 2-state color tinting for Dashboard's screen-time display -- no
 // numeric score, no "Attention"/"Warning" label anywhere, just a color
-// shift on elements that already exist (the big time value + the ring's
-// overall tone). 240 min (4h) chosen because SCREEN_TIME_TODAY (4h 32m)
-// already crosses it, so both states are demo-visible without faking
-// data. Mirrors core/mock_data.py's AMBIENT_* constants exactly.
+// shift on elements that already exist (the big time value only -- the
+// ring's own border stays a fixed neutral color regardless of ambient
+// state, see buildRingChart()). 240 min (4h) chosen because
+// SCREEN_TIME_TODAY (4h 32m) already crosses it, so both states are
+// demo-visible without faking data. Mirrors core/mock_data.py's AMBIENT_*
+// constants exactly (already-softened values from this session).
 const SCREEN_TIME_TODAY = "4h 32m";
 const AMBIENT_THRESHOLD_MINUTES = 240;
-const AMBIENT_COLOR_NORMAL = "#8fd3c7";  // existing teal accent, unchanged look below the threshold
-const AMBIENT_COLOR_HIGH = "#e0a96d";    // soft amber, not red -- ambient, not alarming
+const AMBIENT_COLOR_NORMAL = "#93cfc4";  // softened teal accent, unchanged look below the threshold
+const AMBIENT_COLOR_HIGH = "#d9a974";    // soft amber, not red -- ambient, not alarming
 function isHighUsage(){ return parseMinutes(SCREEN_TIME_TODAY) >= AMBIENT_THRESHOLD_MINUTES; }
 function usageColor(isHigh){ return isHigh ? AMBIENT_COLOR_HIGH : AMBIENT_COLOR_NORMAL; }
 
@@ -521,14 +641,14 @@ function buildRingChart(){
   const total = TOP_APPS.reduce((sum, app) => sum + parseMinutes(app.time), 0);
   if(total <= 0) return;
   const cx = 56, cy = 56, rOuter = 52, rInner = 36, gapDeg = 3;
-  // Ring outline reflects the ambient usage-level tint (see
-  // AMBIENT_COLOR_NORMAL/HIGH above) -- individual segment *fill* colors
-  // below are untouched either way, they carry per-app meaning. Still
-  // does its original contrast job too: X (Twitter)'s own color
-  // (#1d2026) is identical to this card's background, so without an
-  // outline that segment would be invisible -- both ambient colors are
-  // light enough to stay visible against any segment's dark fill.
-  const strokeColor = usageColor(isHighUsage());
+  // Fixed neutral border, NOT ambient-tinted -- the ambient signal lives
+  // only on the big screen-time text (applyAmbientTint()) now. This
+  // border exists purely so a dark segment like X (Twitter)'s own color
+  // (#1f2024, near-identical to this card's background) isn't invisible;
+  // tinting it teal/amber read as visually off and conflated two
+  // different signals (same fix made on the Python side this session,
+  // see ui/widgets/usage_ring_chart.py's docstring).
+  const strokeColor = '#3a3f47';
   let angle = 0;
   const NS = 'http://www.w3.org/2000/svg';
   TOP_APPS.forEach(app=>{
@@ -568,41 +688,201 @@ function buildUsageLegend(){
   });
 }
 
-function buildProtectableApps(){
-  const wrap = document.getElementById('protectableApps');
+// Set Your Intention screen -- one row per app: icon/name + an animated
+// Protect switch, and (only while that switch is on) a collapsible
+// labeled level slider. Row list never changes (always all of
+// PROTECTABLE_APPS), matching ui/protection_customization.py -- everything
+// here applies live, no commit button, no master toggle (that's
+// Dashboard's Focus Mode button's job only).
+function safeId(name){ return name.replace(/[^a-zA-Z]/g, ''); }
+
+function buildIntentionRows(){
+  const wrap = document.getElementById('intentionRows');
   wrap.innerHTML = '';
   PROTECTABLE_APPS.forEach(name=>{
-    const id = 'chk_'+name.replace(/[^a-zA-Z]/g,'');
-    const row = document.createElement('label');
-    row.className = 'checkbox-row';
-    row.innerHTML = `<input type="checkbox" id="${id}" ${PROTECTED.has(name)?'checked':''}> ${name}`;
+    const checked = PROTECTED.has(name);
+    const level = APP_LEVELS[name] || 1;
+    const id = safeId(name);
+    const [, color] = glyphFor(name);
+
+    const row = document.createElement('div');
+    row.className = 'intent-row';
+    row.innerHTML = `
+      <div class="intent-row-top">
+        <div class="intent-avatar" style="background:${color}">${avatarInnerHTML(name)}</div>
+        <span class="name">${name}</span>
+        <label class="switch">
+          <input type="checkbox" id="sw_${id}" ${checked ? 'checked' : ''}
+                 onchange="onProtectSwitchToggled('${name}', this.checked)">
+          <span class="track"><span class="thumb"></span></span>
+        </label>
+      </div>
+      <div class="level-row${checked ? ' open' : ''}" id="lvlrow_${id}">
+        <div class="level-row-inner">
+          <span class="level-label" id="lvllabel_${id}">Level ${level}:</span>
+          <input type="range" class="level-slider" id="lvl_${id}" min="1" max="3" step="1"
+                 value="${level}" ${checked ? '' : 'disabled'}
+                 oninput="onLevelSliderChanged('${name}', this.value)">
+        </div>
+      </div>`;
     wrap.appendChild(row);
   });
 }
 
+function onProtectSwitchToggled(name, checked){
+  if(checked) PROTECTED.add(name); else PROTECTED.delete(name);
+  const id = safeId(name);
+  document.getElementById('lvlrow_' + id).classList.toggle('open', checked);
+  document.getElementById('lvl_' + id).disabled = !checked;
+  buildUsageLegend(); // keep Dashboard's "Protected" badges live-synced
+}
+
+function onLevelSliderChanged(name, value){
+  const level = parseInt(value, 10);
+  APP_LEVELS[name] = level;
+  document.getElementById('lvllabel_' + safeId(name)).textContent = `Level ${level}:`;
+}
+
+function onIntentionEdited(){
+  const val = document.getElementById('intentionInput').value.trim();
+  currentIntention = val || DEFAULT_INTENTION;
+}
+
+function toggleFocusMode(){
+  // Dashboard's Focus Mode button is the ONLY place PROTECTION_ENABLED
+  // changes -- flips in place, no navigation, never touches which
+  // apps/levels/message are configured (mirrors main.py's
+  // _on_focus_toggled split from _on_protected_apps_changed/
+  // _on_intention_changed).
+  PROTECTION_ENABLED = !PROTECTION_ENABLED;
+  applyFocusButtonState();
+}
+
+function applyFocusButtonState(){
+  const btn = document.getElementById('focusBtn');
+  if(!btn) return;
+  btn.textContent = PROTECTION_ENABLED ? 'Deactivate Focus Mode' : 'Activate Focus Mode';
+  btn.className = PROTECTION_ENABLED ? 'btn-focus-active' : 'btn-focus-idle';
+}
+
 function openApp(name){
-  if(PROTECTED.has(name)){
+  if(PROTECTED.has(name) && PROTECTION_ENABLED){
     startInterruption(name);
   } else {
     showFakeApp(name);
   }
 }
 
+// ===== Interruption screen: escalating levels (mirrors ui/interruption.py) =====
+
+let interruptUnlockTimer = null;
+let interruptCountdownTimer = null;
+let interruptSecondsLeft = 0;
+let interruptLevelCfg = PROTECTION_LEVELS[1];
+
+function clearInterruptTimers(){
+  // Defensive stop for when the screen is navigated away from
+  // (Continue/Go Back) mid-countdown -- same reasoning as
+  // InterruptionScreen.stop_timers() on the Python side.
+  if(interruptUnlockTimer) clearTimeout(interruptUnlockTimer);
+  if(interruptCountdownTimer) clearInterval(interruptCountdownTimer);
+  interruptUnlockTimer = null;
+  interruptCountdownTimer = null;
+}
+
+function updateContinueText(btn){
+  btn.textContent = btn.disabled ? `Continue Anyway (${interruptSecondsLeft}s)` : 'Continue Anyway';
+}
+
 function startInterruption(name){
-  const [glyph] = glyphFor(name);
-  document.getElementById('interruptGlyph').textContent = glyph;
+  // Full reset first -- this screen's DOM is reused across every trigger,
+  // so nothing from a previous app/level may survive (same as
+  // set_context()'s own reset block on the Python side).
+  clearInterruptTimers();
+  const circle = document.getElementById('breathingCircle');
+  circle.classList.remove('shown', 'pulsing');
+  const reaffirmEl = document.getElementById('reaffirmChip');
+  reaffirmEl.style.display = 'none';
+
   document.getElementById('interruptAppName').textContent = name;
   document.getElementById('interruptIntention').textContent = '"' + currentIntention + '"';
-  document.getElementById('interruptContinueBtn').onclick = () => {
-    showFakeApp(name);
-  };
+
+  const timeSpentEl = document.getElementById('interruptTimeSpent');
+  const timeSpent = timeSpentTodayFor(name);
+  if(timeSpent){
+    timeSpentEl.textContent = `You've spent ${timeSpent} on ${name} today.`;
+    timeSpentEl.style.display = '';
+  } else {
+    timeSpentEl.style.display = 'none';
+  }
+
+  const [, color] = glyphFor(name);
+  const avatarEl = document.getElementById('interruptAvatar');
+  avatarEl.style.background = color;
+  avatarEl.innerHTML = avatarInnerHTML(name);
+
+  const continueBtn = document.getElementById('interruptContinueBtn');
+  continueBtn.disabled = true;
+  continueBtn.onclick = () => { clearInterruptTimers(); showFakeApp(name); };
+
+  const level = APP_LEVELS[name] || 1;
+  interruptLevelCfg = PROTECTION_LEVELS[level] || PROTECTION_LEVELS[1];
+  interruptSecondsLeft = interruptLevelCfg.delay;
+  updateContinueText(continueBtn);
+
+  if(interruptLevelCfg.breathing){
+    circle.classList.add('shown', 'pulsing');
+  }
+
+  interruptCountdownTimer = setInterval(() => {
+    interruptSecondsLeft = Math.max(interruptSecondsLeft - 1, 0);
+    updateContinueText(continueBtn);
+    if(interruptSecondsLeft <= 0) clearInterval(interruptCountdownTimer);
+  }, 1000);
+
+  interruptUnlockTimer = setTimeout(() => {
+    // Delay elapsed -- stop pulsing but leave the circle visibly frozen
+    // at rest (not hidden) if it was shown, matching
+    // BreathingCircle.stop() on the Python side.
+    circle.classList.remove('pulsing');
+    if(interruptCountdownTimer) clearInterval(interruptCountdownTimer);
+    if(interruptLevelCfg.reaffirm){
+      // Delay's over but still gated -- drop the stale "(0s)" suffix
+      // rather than leave a countdown next to a button that isn't
+      // actually about to unlock on its own.
+      continueBtn.textContent = 'Continue Anyway';
+      reaffirmEl.style.display = 'inline-block';
+    } else {
+      continueBtn.disabled = false;
+      updateContinueText(continueBtn);
+    }
+  }, interruptLevelCfg.delay * 1000);
+
   go('interruption');
+}
+
+function onReaffirmClick(){
+  document.getElementById('reaffirmChip').style.display = 'none';
+  const continueBtn = document.getElementById('interruptContinueBtn');
+  continueBtn.disabled = false;
+  updateContinueText(continueBtn);
 }
 
 // ===== Fake App screen: feed / shorts / messages, one shared entry point =====
 
 function showFakeApp(name){
   document.getElementById('fakeAppTitle').textContent = name;
+
+  // Small, muted "time spent today" nudge -- same data source/graceful-
+  // omit behavior as the Interruption screen's own nudge.
+  const subtitleEl = document.getElementById('fakeAppSubtitle');
+  const timeSpent = timeSpentTodayFor(name);
+  if(timeSpent){
+    subtitleEl.textContent = `${timeSpent} today`;
+    subtitleEl.style.display = '';
+  } else {
+    subtitleEl.style.display = 'none';
+  }
 
   const [, color] = glyphFor(name);
   const avatarEl = document.getElementById('fakeAppAvatar');
@@ -806,29 +1086,13 @@ function setupElasticScroll(container){
   });
 }
 
-function activateProtection(){
-  currentIntention = document.getElementById('intentionInput').value || currentIntention;
-  // The actual fix: read what's really checked and replace PROTECTED with
-  // it, instead of leaving the checkboxes purely decorative (same bug as
-  // ui/intention_setup.py + main.py's _on_intention_activated on Python
-  // side, before it was fixed).
-  const newProtected = new Set();
-  PROTECTABLE_APPS.forEach(name=>{
-    const id = 'chk_'+name.replace(/[^a-zA-Z]/g,'');
-    const cb = document.getElementById(id);
-    if(cb && cb.checked) newProtected.add(name);
-  });
-  PROTECTED = newProtected;
-  buildUsageLegend();
-  go('dashboard');
-}
-
 buildAppGrid();
 buildDock();
-buildProtectableApps();
+buildIntentionRows();
 buildRingChart();
 buildUsageLegend();
 applyAmbientTint();
+applyFocusButtonState();
 </script>
 </body>
 </html>
