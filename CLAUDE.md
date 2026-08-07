@@ -117,18 +117,23 @@ reset to defaults on restart):
   "time spent" nudges.
 - **Light/Dark** (`main.load_stylesheet()` + new `prototype/ui/styles_light.qss`): swaps
   the whole app's stylesheet at runtime via `app.setStyleSheet()`. Brand accent colors
-  (teal, the Focus-Mode-active green) are identical in both files on purpose. Two things
-  this swap can't reach, both documented at the top of `styles_light.qss`: the Fake App
-  screen's feed/shorts/messages body content (deliberately stays dark, mimics a real
-  app keeping its own theme independent of the OS), and `ToggleSwitch`/`BreathingCircle`
+  (teal, the Focus-Mode-active green) are identical in both files on purpose. Fake App's
+  feed/messages body content DOES get its own light variant (generic "real app" colors —
+  white cards, near-black text — never mindful-gate's own teal/amber, see
+  `styles_light.qss`'s top comment); only its "shorts" style (TikTok/YouTube) stays
+  unchanged regardless of theme, since that caption bar is a translucent dark overlay on
+  top of a photo, same as how real apps/videos keep it dark regardless of OS theme. The
+  one thing this swap genuinely can't reach: `ToggleSwitch`/`BreathingCircle`
   (self-painted in Python, never consult the app stylesheet at all — confirmed their
   hardcoded colors still read fine against the light theme regardless).
-- **TH/EN** (`core/strings.py`'s `t()`): retranslates Phone Home + Dashboard's own UI copy
-  (captions, labels, button text). **Deliberately scoped to just these two screens for
-  now** — Interruption, Set Your Intention, and Fake App remain English-only. This is a
-  scope decision, not an oversight: don't "fix" it later without checking whether it's
-  actually wanted first. Real app brand names (Instagram, TikTok, etc.) are never
-  translated anywhere, on any screen — they're proper nouns, not UI copy.
+- **TH/EN** (`core/strings.py`'s `t()`): retranslates Phone Home, Dashboard, Interruption,
+  and Set Your Intention — i.e. all of mindful-gate's own UI chrome (captions, labels,
+  button text, the level slider's "Level N:" label, etc.). **Fake App remains
+  English-only, deliberately** — its feed captions/usernames/chat messages/shorts
+  captions are mocked-up real-app content, not mindful-gate's own UI copy, same reasoning
+  as its light/dark styling above. Real app brand names (Instagram, TikTok, etc.) and any
+  user-typed text (the intention/message field) are never translated anywhere, on any
+  screen — proper nouns and user input aren't UI copy.
 
 ## Architecture notes
 

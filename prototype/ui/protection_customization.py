@@ -7,6 +7,7 @@ from core.mock_data import (
     glyph_for, icon_path_for, PROTECTABLE_APPS, DEFAULT_PROTECTED_APPS,
     DEFAULT_APP_PROTECTION_LEVELS, PROTECTION_LEVELS, DEFAULT_INTENTION,
 )
+from core.strings import t, DEFAULT_LANGUAGE
 from ui.widgets.svg_icon import white_svg_pixmap
 from ui.widgets.toggle_switch import ToggleSwitch
 from ui.widgets.level_slider import LevelSlider
@@ -47,6 +48,7 @@ class ProtectionCustomizationScreen(QWidget):
         self._level_sliders = {}  # app_name -> LevelSlider
         self._level_labels = {}  # app_name -> QLabel
         self._level_anims = {}  # app_name -> QPropertyAnimation, kept alive
+        self._language = DEFAULT_LANGUAGE
         self._build_ui()
 
     def _build_ui(self):
@@ -68,17 +70,14 @@ class ProtectionCustomizationScreen(QWidget):
         header.setContentsMargins(32, 32, 32, 0)
         header.setSpacing(16)
 
-        title = QLabel("Set Your Intention")
-        title.setObjectName("screenTitle")
-        header.addWidget(title)
+        self.title = QLabel(t("set_your_intention_title", self._language))
+        self.title.setObjectName("screenTitle")
+        header.addWidget(self.title)
 
-        subtitle = QLabel(
-            "Choose which apps to protect, how firmly each should ask you "
-            "to pause, and why you're using them."
-        )
-        subtitle.setObjectName("caption")
-        subtitle.setWordWrap(True)
-        header.addWidget(subtitle)
+        self.subtitle = QLabel(t("protection_subtitle", self._language))
+        self.subtitle.setObjectName("caption")
+        self.subtitle.setWordWrap(True)
+        header.addWidget(self.subtitle)
 
         page_root.addLayout(header)
 
@@ -93,10 +92,13 @@ class ProtectionCustomizationScreen(QWidget):
             rows_layout.addWidget(self._build_row(app))
         root.addLayout(rows_layout)
 
-        intent_label = QLabel("Your message")
-        intent_label.setObjectName("sectionLabel")
-        root.addWidget(intent_label)
+        self.intent_label = QLabel(t("your_message", self._language))
+        self.intent_label.setObjectName("sectionLabel")
+        root.addWidget(self.intent_label)
 
+        # The message text itself (both the placeholder default and
+        # whatever the user types) is USER INPUT, never translated -- same
+        # rule as Interruption's intention quote.
         self.intention_input = QLineEdit(DEFAULT_INTENTION)
         self.intention_input.setObjectName("intentionInput")
         # Live/instant like everything else on this screen -- no master
@@ -107,10 +109,10 @@ class ProtectionCustomizationScreen(QWidget):
         self.intention_input.editingFinished.connect(self._on_intention_edited)
         root.addWidget(self.intention_input)
 
-        back_btn = QPushButton("Back")
-        back_btn.setObjectName("linkBtn")
-        back_btn.clicked.connect(lambda: self.go_back.emit())
-        root.addWidget(back_btn)
+        self.back_btn = QPushButton(t("back", self._language))
+        self.back_btn.setObjectName("linkBtn")
+        self.back_btn.clicked.connect(lambda: self.go_back.emit())
+        root.addWidget(self.back_btn)
 
         scroll = ElasticScrollArea()
         scroll.setObjectName("protectionScrollArea")
@@ -167,7 +169,7 @@ class ProtectionCustomizationScreen(QWidget):
         level_layout.setSpacing(8)
 
         current_level = self._levels.get(app_name, 1)
-        level_label = QLabel(f"Level {current_level}:")
+        level_label = QLabel(t("level_label", self._language).format(level=current_level))
         level_label.setObjectName("levelLabel")
         level_layout.addWidget(level_label)
 
@@ -219,9 +221,21 @@ class ProtectionCustomizationScreen(QWidget):
 
     def _on_level_changed(self, app_name, level):
         self._levels[app_name] = level
-        self._level_labels[app_name].setText(f"Level {level}:")
+        self._level_labels[app_name].setText(t("level_label", self._language).format(level=level))
         self.level_changed.emit(app_name, level)
 
     def _on_intention_edited(self):
         intention = self.intention_input.text().strip() or DEFAULT_INTENTION
         self.intention_changed.emit(intention)
+
+    def set_language(self, lang):
+        """Retranslate this screen's own UI copy -- app names and the
+        message field's text are never translated (real brand names /
+        user input), only static labels/titles/buttons change."""
+        self._language = lang
+        self.title.setText(t("set_your_intention_title", lang))
+        self.subtitle.setText(t("protection_subtitle", lang))
+        self.intent_label.setText(t("your_message", lang))
+        self.back_btn.setText(t("back", lang))
+        for app_name, label in self._level_labels.items():
+            label.setText(t("level_label", lang).format(level=self._levels.get(app_name, 1)))

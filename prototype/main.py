@@ -173,6 +173,8 @@ class MainWindow(QMainWindow):
         self.phone_home.set_language(self.language)
         self.phone_home.set_language_button_state(self.language)
         self.dashboard.set_language(self.language)
+        self.interruption.set_language(self.language)
+        self.protection_screen.set_language(self.language)
 
     def _on_phone_home_app_tapped(self, app_name, protected):
         if protected and self.protection_enabled:

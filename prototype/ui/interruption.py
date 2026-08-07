@@ -5,6 +5,7 @@ from core.mock_data import (
     glyph_for, icon_path_for, PROTECTION_LEVELS, BREATHING_CYCLE_MS,
     time_spent_today_for,
 )
+from core.strings import t, DEFAULT_LANGUAGE
 from ui.widgets.svg_icon import white_svg_pixmap
 from ui.widgets.breathing_circle import BreathingCircle
 
@@ -20,6 +21,8 @@ class InterruptionScreen(QWidget):
         self.setObjectName("interruptionScreen")
         self._level_cfg = PROTECTION_LEVELS[1]
         self._seconds_left = 0
+        self._language = DEFAULT_LANGUAGE
+        self._current_app = ""  # so set_language can re-render "You opened {app}." mid-flow
 
         # Persistent timers, reused across every set_context() call (this
         # screen instance is shared for every app tap, never recreated) --
@@ -48,10 +51,10 @@ class InterruptionScreen(QWidget):
         self.app_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         root.addWidget(self.app_label)
 
-        question = QLabel("Still on purpose?")
-        question.setObjectName("interruptQuestion")
-        question.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        root.addWidget(question)
+        self.question_label = QLabel(t("still_on_purpose", self._language))
+        self.question_label.setObjectName("interruptQuestion")
+        self.question_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        root.addWidget(self.question_label)
 
         self.intention_label = QLabel()
         self.intention_label.setObjectName("intentionQuote")
@@ -72,7 +75,7 @@ class InterruptionScreen(QWidget):
         # Level 3 only: a deliberate reaffirm tap, anchored right under the
         # intention quote it's reaffirming. Hidden until the breathing
         # delay elapses (see _on_delay_elapsed).
-        self.reaffirm_btn = QPushButton("Still on purpose?")
+        self.reaffirm_btn = QPushButton(t("still_on_purpose", self._language))
         self.reaffirm_btn.setObjectName("reaffirmChip")
         self.reaffirm_btn.clicked.connect(self._on_reaffirm_clicked)
         self.reaffirm_btn.hide()
@@ -97,12 +100,12 @@ class InterruptionScreen(QWidget):
 
         root.addStretch(3)
 
-        back_btn = QPushButton("Go Back")
-        back_btn.setObjectName("primaryBtn")
-        back_btn.clicked.connect(lambda: self.go_back_clicked.emit())
-        root.addWidget(back_btn)
+        self.back_btn = QPushButton(t("go_back", self._language))
+        self.back_btn.setObjectName("primaryBtn")
+        self.back_btn.clicked.connect(lambda: self.go_back_clicked.emit())
+        root.addWidget(self.back_btn)
 
-        self.continue_btn = QPushButton("Continue Anyway")
+        self.continue_btn = QPushButton(t("continue_anyway", self._language))
         self.continue_btn.setObjectName("secondaryBtn")
         self.continue_btn.clicked.connect(lambda: self.continue_clicked.emit())
         root.addWidget(self.continue_btn)
@@ -116,12 +119,17 @@ class InterruptionScreen(QWidget):
         self.breathing_circle.hide()
         self.reaffirm_btn.hide()
 
-        self.app_label.setText(f"You opened {app_name}.")
+        self._current_app = app_name
+        self.app_label.setText(t("you_opened", self._language).format(app=app_name))
+        # The intention/message text is USER INPUT, never translated --
+        # same rule as Set Your Intention's message field.
         self.intention_label.setText(f"“{intention}”")
 
         time_spent = time_spent_today_for(app_name)
         if time_spent:
-            self.time_spent_label.setText(f"You've spent {time_spent} on {app_name} today.")
+            self.time_spent_label.setText(
+                t("time_spent_nudge", self._language).format(time=time_spent, app=app_name)
+            )
             self.time_spent_label.show()
         else:
             self.time_spent_label.hide()
@@ -161,9 +169,11 @@ class InterruptionScreen(QWidget):
 
     def _update_continue_text(self):
         if self.continue_btn.isEnabled():
-            self.continue_btn.setText("Continue Anyway")
+            self.continue_btn.setText(t("continue_anyway", self._language))
         else:
-            self.continue_btn.setText(f"Continue Anyway ({self._seconds_left}s)")
+            self.continue_btn.setText(
+                t("continue_anyway_countdown", self._language).format(seconds=self._seconds_left)
+            )
 
     def _on_delay_elapsed(self):
         self.breathing_circle.stop()
@@ -172,7 +182,7 @@ class InterruptionScreen(QWidget):
             # Delay's over but still gated -- drop the stale "(0s)" suffix
             # rather than leave a countdown showing next to a button that
             # isn't actually about to unlock on its own.
-            self.continue_btn.setText("Continue Anyway")
+            self.continue_btn.setText(t("continue_anyway", self._language))
             self.reaffirm_btn.show()
         else:
             self.continue_btn.setEnabled(True)
@@ -181,6 +191,23 @@ class InterruptionScreen(QWidget):
     def _on_reaffirm_clicked(self):
         self.reaffirm_btn.hide()
         self.continue_btn.setEnabled(True)
+        self._update_continue_text()
+
+    def set_language(self, lang):
+        """Retranslate this screen's own UI copy. The intention/message
+        text (self.intention_label) is user input, never translated --
+        same rule as Set Your Intention's message field."""
+        self._language = lang
+        if self._current_app:
+            self.app_label.setText(t("you_opened", lang).format(app=self._current_app))
+            time_spent = time_spent_today_for(self._current_app)
+            if time_spent:
+                self.time_spent_label.setText(
+                    t("time_spent_nudge", lang).format(time=time_spent, app=self._current_app)
+                )
+        self.question_label.setText(t("still_on_purpose", lang))
+        self.reaffirm_btn.setText(t("still_on_purpose", lang))
+        self.back_btn.setText(t("go_back", lang))
         self._update_continue_text()
 
     def stop_timers(self):

@@ -1,14 +1,24 @@
 """
-Minimal i18n strings for the Phone Home and Dashboard screens ONLY.
+i18n strings for mindful-gate's OWN UI chrome -- Phone Home, Dashboard,
+Interruption, and Set Your Intention.
 
-Deliberately scoped -- Interruption, Set Your Intention, and Fake App
-remain English-only for now (see CLAUDE.md for why). Real app brand names
-(Instagram, TikTok, etc.) are never translated anywhere, on either screen
--- they're proper nouns, not UI copy.
+Fake App is deliberately excluded: its feed captions/usernames/chat
+messages/shorts captions are mocked-up REAL-APP content (meant to read as
+"a real app", same reasoning as its light/dark styling in
+ui/styles_light.qss), not mindful-gate's own UI copy, so it stays
+English-only by design. Real app brand names (Instagram, TikTok, etc.)
+are never translated anywhere, on any screen -- they're proper nouns, not
+UI copy. The user-typed intention/message text itself is also never
+translated -- that's user input, not UI copy either.
+
+Templated keys (e.g. "{app}", "{time}", "{seconds}", "{level}") are
+filled in by the caller via .format() -- t() itself just does the
+key/language lookup, same as before.
 """
 
 STRINGS = {
     "en": {
+        # Dashboard
         "dashboard_title": "Dashboard",
         "screen_time_today": "Screen time today",
         "unlocks": "Unlocks",
@@ -19,11 +29,26 @@ STRINGS = {
         "deactivate_focus_mode": "Deactivate Focus Mode",
         "set_your_intention": "Set your intention",
         "home": "⌂ Home",
+        # Phone Home referee controls
         "shuffle": "Shuffle",
         "light": "Light",
         "dark": "Dark",
+        # Interruption
+        "you_opened": "You opened {app}.",
+        "still_on_purpose": "Still on purpose?",
+        "go_back": "Go Back",
+        "continue_anyway": "Continue Anyway",
+        "continue_anyway_countdown": "Continue Anyway ({seconds}s)",
+        "time_spent_nudge": "You've spent {time} on {app} today.",
+        # Set Your Intention
+        "set_your_intention_title": "Set Your Intention",
+        "protection_subtitle": "Choose which apps to protect, how firmly each should ask you to pause, and why you're using them.",
+        "your_message": "Your message",
+        "level_label": "Level {level}:",
+        "back": "Back",
     },
     "th": {
+        # Dashboard
         "dashboard_title": "แดชบอร์ด",
         "screen_time_today": "เวลาหน้าจอวันนี้",
         "unlocks": "การปลดล็อก",
@@ -34,9 +59,23 @@ STRINGS = {
         "deactivate_focus_mode": "ปิดโหมดโฟกัส",
         "set_your_intention": "ตั้งเป้าหมายของคุณ",
         "home": "⌂ หน้าหลัก",
+        # Phone Home referee controls
         "shuffle": "สุ่ม",
         "light": "สว่าง",
         "dark": "มืด",
+        # Interruption
+        "you_opened": "คุณเปิด {app}",
+        "still_on_purpose": "ยังตั้งใจอยู่ไหม?",
+        "go_back": "ย้อนกลับ",
+        "continue_anyway": "ดำเนินการต่อ",
+        "continue_anyway_countdown": "ดำเนินการต่อ ({seconds} วิ)",
+        "time_spent_nudge": "วันนี้คุณใช้เวลา {time} กับ {app}",
+        # Set Your Intention
+        "set_your_intention_title": "ตั้งเป้าหมายของคุณ",
+        "protection_subtitle": "เลือกแอปที่ต้องการป้องกัน กำหนดความเข้มงวดในการหยุดพัก และเหตุผลที่คุณใช้งานแอปเหล่านี้",
+        "your_message": "ข้อความของคุณ",
+        "level_label": "ระดับ {level}:",
+        "back": "ย้อนกลับ",
     },
 }
 

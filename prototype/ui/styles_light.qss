@@ -10,14 +10,19 @@
    backgrounds, borders, body/muted/dim text) inverts.
 
    Two deliberate exceptions, both documented inline below:
-   1. The Fake App screen's feed/shorts/messages BODY content (the mocked
-      Instagram/TikTok/etc. UI) stays dark regardless of this toggle --
-      only its header bar flips. Real apps commonly keep their own theme
-      independent of the OS theme, and this content is explicitly designed
-      to "read as a real app, not part of this app's own UI" (see
-      styles.qss's own comment on that section) -- inverting it too would
-      be a lot of extra surface for a demo aesthetic choice that isn't
-      part of mindful-gate's own UI anyway.
+   1. The Fake App screen's feed/messages BODY content (the mocked
+      Instagram/Facebook/X/Reddit/Messages UI) DOES get its own light
+      variant here, following this same theme toggle -- but using generic
+      "real app" light colors (white cards, near-black text, neutral
+      grays), never mindful-gate's own teal/amber, so it still reads as
+      "a real app" rather than adopting this app's own design system (see
+      styles.qss's comment on that section for why it's kept separate at
+      all). The "shorts" style (TikTok/YouTube) is the one part that
+      intentionally stays unchanged regardless of theme -- its caption bar
+      is a translucent dark overlay ON TOP OF a photo, which real
+      apps/videos also keep dark for legibility regardless of the OS
+      theme, so there's no separate "light" version of that specific
+      overlay to make.
    2. ToggleSwitch and BreathingCircle (ui/widgets/toggle_switch.py,
       breathing_circle.py) are entirely self-painted in Python -- they
       never consult the app stylesheet at all, so this file cannot affect
@@ -320,8 +325,10 @@ QPushButton#dockIcon QLabel#appIconLabel {
 }
 
 /* ===== Fake App Screen =====
-   Only the header bar flips to light chrome -- the feed/shorts/messages
-   BODY content below stays dark on purpose, see this file's top comment. */
+   Header bar flips to light chrome, same as everywhere else. The feed/
+   messages BODY content below gets its own light "real app" variant too
+   (see feed/messages sections below) -- only "shorts" stays unchanged
+   regardless of theme, see this file's top comment. */
 QWidget#fakeAppScreen {
     background-color: #f4f5f7;
 }
@@ -346,24 +353,30 @@ QLabel#fakeAppTitle {
     font-weight: 600;
 }
 /* --- feed style: Instagram / Facebook / X (Twitter) / Reddit ---
-   Unchanged from the dark theme -- see this file's top comment (exception 1). */
+   A generic "real app" LIGHT look (white cards, near-black text, neutral
+   grays) -- not mindful-gate's own teal/amber, just the light-mode
+   sibling of the dark file's neutral/realistic palette. A thin border
+   replaces the dark file's reliance on a darker-than-page card color,
+   since a plain white card would otherwise blend into this theme's
+   light page background. */
 QFrame#feedPostCard {
-    background-color: #1c1c1e;
+    background-color: #ffffff;
+    border: 1px solid #e2e2e4;
     border-radius: 10px;
 }
 QLabel#feedUsername {
     background-color: transparent;
-    color: #f2f2f2;
+    color: #1c1c1e;
     font-weight: 600;
     font-size: 13px;
 }
 QLabel#feedPhoto {
-    background-color: #0d0d0d;
+    background-color: #e8e8e8;
     border-radius: 0px;
 }
 QLabel#feedCaption {
     background-color: transparent;
-    color: #cfcfcf;
+    color: #3c3c3c;
     font-size: 12px;
 }
 
@@ -374,7 +387,7 @@ QFrame#feedActionsIcons {
 QPushButton#feedActionIcon {
     background-color: transparent;
     border: none;
-    color: #e8e8e8;
+    color: #1c1c1e;
     font-size: 20px;
     min-width: 34px; max-width: 34px;
     min-height: 34px; max-height: 34px;
@@ -383,7 +396,7 @@ QPushButton#feedActionIcon {
 QPushButton#feedActionIconSmall {
     background-color: transparent;
     border: none;
-    color: #a8a8a8;
+    color: #5a5a5a;
     font-size: 15px;
     min-width: 28px; max-width: 28px;
     min-height: 28px; max-height: 28px;
@@ -393,44 +406,46 @@ QPushButton#feedActionIconSmall {
 /* Facebook action row: full-width labeled buttons + thin dividers */
 QFrame#feedActionsLabeled {
     background-color: transparent;
-    border-top: 1px solid #2a2a2c;
+    border-top: 1px solid #e2e2e4;
 }
 QPushButton#feedActionLabeled {
     background-color: transparent;
     border: none;
-    color: #b8b8b8;
+    color: #4a4a4a;
     font-size: 12px;
     font-weight: 600;
     padding: 8px 0px;
     border-radius: 8px;
 }
 QFrame#feedActionDivider {
-    background-color: #2a2a2c;
+    background-color: #e2e2e4;
     margin: 6px 0px;
 }
 
-/* Reddit vote cluster: vertical, left side of the card */
+/* Reddit vote cluster: vertical, left side of the card -- subtly shaded
+   relative to the card, same relationship as the dark theme's slightly
+   darker-than-card cluster bg. */
 QFrame#voteCluster {
-    background-color: #161617;
+    background-color: #f2f2f3;
     border-top-left-radius: 10px;
     border-bottom-left-radius: 10px;
 }
 QPushButton#voteArrowUp, QPushButton#voteArrowDown {
     background-color: transparent;
     border: none;
-    color: #818384;
+    color: #6b6b6b;
     font-size: 13px;
     padding: 2px;
 }
 QLabel#voteCount {
     background-color: transparent;
-    color: #d7dadc;
+    color: #1c1c1e;
     font-size: 11px;
     font-weight: 700;
 }
 QLabel#feedCommentCount {
     background-color: transparent;
-    color: #818384;
+    color: #6b6b6b;
     font-size: 11px;
 }
 
@@ -501,31 +516,37 @@ QLabel#shortsEngageCount {
     font-weight: 600;
 }
 
-/* --- messages style --- unchanged, see exception 1 */
+/* --- messages style --- light "real app" look, same reasoning as feed
+   above. chatBubbleMe keeps the same teal fill as the dark theme
+   unchanged -- that's already self-contained (dark text on top,
+   unaffected by page background) and plenty of real chat apps use one
+   fixed accent for "me" bubbles regardless of light/dark, so it isn't
+   "mindful-gate's palette leaking in", just the existing choice carried
+   over as-is. */
 QFrame#messagesSidebar {
-    background-color: #17181a;
-    border-right: 1px solid #26282c;
+    background-color: #f7f7f8;
+    border-right: 1px solid #e2e2e4;
 }
 QWidget#messagesChatView {
-    background-color: #14161a;
+    background-color: #ffffff;
 }
 QFrame#messagesContactRow {
     background-color: transparent;
     border-radius: 8px;
 }
 QFrame#messagesContactRowActive {
-    background-color: #23272f;
+    background-color: #e8e9eb;
     border-radius: 8px;
 }
 QLabel#messagesContactName {
     background-color: transparent;
-    color: #eef0f2;
+    color: #1c1c1e;
     font-size: 12px;
     font-weight: 600;
 }
 QLabel#messagesContactPreview {
     background-color: transparent;
-    color: #8a8f98;
+    color: #6b6f76;
     font-size: 11px;
 }
 QLabel#chatBubbleMe {
@@ -536,8 +557,8 @@ QLabel#chatBubbleMe {
     font-size: 13px;
 }
 QLabel#chatBubbleThem {
-    background-color: #2a2d33;
-    color: #eef0f2;
+    background-color: #e5e6e8;
+    color: #1c1c1e;
     border-radius: 14px;
     padding: 8px 12px;
     font-size: 13px;
