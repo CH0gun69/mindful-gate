@@ -64,13 +64,13 @@ DEFAULT_INTENTION = "Only reply to messages"
 # phone home screen and the fake app screen so apps not listed here just fall
 # back to an initial-letter avatar instead of needing to stay in sync.
 APP_GLYPHS = {
-    "Instagram": ("📸", "#d53c70"),
+    "Instagram": ("📸", "#c44d75"),
     "TikTok": ("🎵", "#111214"),
-    "X (Twitter)": ("𝕏", "#1e2025"),
-    "YouTube": ("▶", "#ee1111"),
-    "Messages": ("💬", "#3ebd5e"),
-    "Facebook": ("📘", "#2679e4"),
-    "Reddit": ("👽", "#ee4d11"),
+    "X (Twitter)": ("𝕏", "#1f2024"),
+    "YouTube": ("▶", "#d62929"),
+    "Messages": ("💬", "#4caf65"),
+    "Facebook": ("📘", "#3b7ccf"),
+    "Reddit": ("👽", "#d65829"),
 }
 
 
