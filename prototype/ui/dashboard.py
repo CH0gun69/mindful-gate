@@ -4,9 +4,11 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, Signal
 
 from core.mock_data import (
-    SCREEN_TIME_TODAY, UNLOCKS_TODAY, NOTIFICATIONS_TODAY,
+    UNLOCKS_TODAY, NOTIFICATIONS_TODAY,
     DEFAULT_PROTECTED_APPS, usage_breakdown, is_high_usage, usage_color,
+    current_screen_time_today,
 )
+from core.strings import t, DEFAULT_LANGUAGE
 from ui.widgets.stat_card import StatCard
 from ui.widgets.usage_ring_chart import UsageRingChart
 
@@ -19,6 +21,7 @@ class DashboardScreen(QWidget):
     def __init__(self, protected_apps=None):
         super().__init__()
         self.focus_active = False
+        self._language = DEFAULT_LANGUAGE
         self._protected = set(
             DEFAULT_PROTECTED_APPS if protected_apps is None else protected_apps
         )
@@ -30,24 +33,26 @@ class DashboardScreen(QWidget):
         root.setContentsMargins(32, 32, 32, 32)
         root.setSpacing(20)
 
-        title = QLabel("Dashboard")
-        title.setObjectName("screenTitle")
-        root.addWidget(title)
+        self.title = QLabel(t("dashboard_title", self._language))
+        self.title.setObjectName("screenTitle")
+        root.addWidget(self.title)
 
         root.addWidget(self._build_screen_time_card())
 
         stats_row = QHBoxLayout()
-        stats_row.addWidget(StatCard("Unlocks", str(UNLOCKS_TODAY)))
-        stats_row.addWidget(StatCard("Notifications", str(NOTIFICATIONS_TODAY)))
+        self.unlocks_card = StatCard(t("unlocks", self._language), str(UNLOCKS_TODAY))
+        self.notifications_card = StatCard(t("notifications", self._language), str(NOTIFICATIONS_TODAY))
+        stats_row.addWidget(self.unlocks_card)
+        stats_row.addWidget(self.notifications_card)
         root.addLayout(stats_row)
 
         root.addStretch()
 
-        focus_label = QLabel("Focus Mode")
-        focus_label.setObjectName("sectionLabel")
-        root.addWidget(focus_label)
+        self.focus_label = QLabel(t("focus_mode", self._language))
+        self.focus_label.setObjectName("sectionLabel")
+        root.addWidget(self.focus_label)
 
-        self.focus_btn = QPushButton("Activate Focus Mode")
+        self.focus_btn = QPushButton(t("activate_focus_mode", self._language))
         self.focus_btn.setObjectName("focusBtnIdle")
         # Toggles protection in place -- does NOT navigate anywhere. Now
         # that the button visually reads as a direct on/off control (gray
@@ -58,15 +63,15 @@ class DashboardScreen(QWidget):
         self.focus_btn.clicked.connect(lambda: self.focus_toggled.emit())
         root.addWidget(self.focus_btn)
 
-        protection_btn = QPushButton("Set your intention")
-        protection_btn.setObjectName("linkBtn")
-        protection_btn.clicked.connect(lambda: self.go_to_protection.emit())
-        root.addWidget(protection_btn)
+        self.protection_btn = QPushButton(t("set_your_intention", self._language))
+        self.protection_btn.setObjectName("linkBtn")
+        self.protection_btn.clicked.connect(lambda: self.go_to_protection.emit())
+        root.addWidget(self.protection_btn)
 
-        home_btn = QPushButton("⌂ Home")
-        home_btn.setObjectName("linkBtn")
-        home_btn.clicked.connect(lambda: self.go_home.emit())
-        root.addWidget(home_btn)
+        self.home_btn = QPushButton(t("home", self._language))
+        self.home_btn.setObjectName("linkBtn")
+        self.home_btn.clicked.connect(lambda: self.go_home.emit())
+        root.addWidget(self.home_btn)
 
     def _build_screen_time_card(self):
         """Screen time today, as a value + a ring chart showing the
@@ -92,13 +97,13 @@ class DashboardScreen(QWidget):
 
         text_block = QVBoxLayout()
         text_block.setSpacing(2)
-        screen_time = QLabel(SCREEN_TIME_TODAY)
-        screen_time.setObjectName("bigScreenTime")
-        screen_time.setStyleSheet(f"color: {tint};")
-        caption = QLabel("Screen time today")
-        caption.setObjectName("caption")
-        text_block.addWidget(screen_time)
-        text_block.addWidget(caption)
+        self.screen_time_label = QLabel(current_screen_time_today())
+        self.screen_time_label.setObjectName("bigScreenTime")
+        self.screen_time_label.setStyleSheet(f"color: {tint};")
+        self.screen_time_caption = QLabel(t("screen_time_today", self._language))
+        self.screen_time_caption.setObjectName("caption")
+        text_block.addWidget(self.screen_time_label)
+        text_block.addWidget(self.screen_time_caption)
         text_block.addStretch()
         top_row.addLayout(text_block)
         top_row.addStretch()
@@ -142,12 +147,14 @@ class DashboardScreen(QWidget):
         )
         layout.addWidget(dot)
 
+        # App name is a real brand name -- never translated, same rule as
+        # every other screen in this app.
         name_lbl = QLabel(name)
         name_lbl.setObjectName("appName")
         layout.addWidget(name_lbl)
 
         if protected:
-            badge = QLabel("Protected")
+            badge = QLabel(t("protected", self._language))
             badge.setObjectName("badge")
             layout.addWidget(badge)
 
@@ -161,23 +168,52 @@ class DashboardScreen(QWidget):
 
     def set_focus_active(self, active: bool):
         self.focus_active = active
-        if active:
-            self.focus_btn.setText("Deactivate Focus Mode")
-            self.focus_btn.setObjectName("focusBtnActive")
-        else:
-            self.focus_btn.setText("Activate Focus Mode")
-            self.focus_btn.setObjectName("focusBtnIdle")
+        self._apply_focus_text()
+        self.focus_btn.setObjectName("focusBtnActive" if active else "focusBtnIdle")
         # objectName swaps don't auto-repaint under Qt style sheets --
         # unpolish/polish forces the new selector to actually apply (same
         # idiom used for the Set Your Intention screen's overall toggle).
         self.focus_btn.style().unpolish(self.focus_btn)
         self.focus_btn.style().polish(self.focus_btn)
 
+    def _apply_focus_text(self):
+        key = "deactivate_focus_mode" if self.focus_active else "activate_focus_mode"
+        self.focus_btn.setText(t(key, self._language))
+
     def set_protected_apps(self, protected_apps):
         """Update which apps are currently protected, e.g. after Setup is
         activated — refreshes the legend's "Protected" badges so they don't
         go stale."""
         self._protected = set(protected_apps)
+        self._refresh_legend()
+
+    def set_language(self, lang):
+        """Retranslate this screen's own UI copy -- app names stay
+        untranslated (real brand names), everything else (labels, section
+        headers, button text) switches. Scoped deliberately to Phone Home
+        + Dashboard only, see CLAUDE.md."""
+        self._language = lang
+        self.title.setText(t("dashboard_title", lang))
+        self.screen_time_caption.setText(t("screen_time_today", lang))
+        self.unlocks_card.set_label(t("unlocks", lang))
+        self.notifications_card.set_label(t("notifications", lang))
+        self.focus_label.setText(t("focus_mode", lang))
+        self._apply_focus_text()
+        self.protection_btn.setText(t("set_your_intention", lang))
+        self.home_btn.setText(t("home", lang))
+        self._refresh_legend()  # "Protected" badges need the new language too
+
+    def refresh_usage_data(self):
+        """Recompute the screen-time total/tint/ring/legend from current
+        (possibly shuffled) mock data -- called by MainWindow after
+        Shuffle so this screen doesn't keep showing stale numbers."""
+        self._breakdown = usage_breakdown()
+        tint = usage_color(is_high_usage())
+        self.screen_time_label.setText(current_screen_time_today())
+        self.screen_time_label.setStyleSheet(f"color: {tint};")
+        self.ring_chart.set_segments(
+            [(name, minutes, color) for name, minutes, _, color in self._breakdown]
+        )
         self._refresh_legend()
 
     def _refresh_legend(self):

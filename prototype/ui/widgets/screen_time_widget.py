@@ -1,7 +1,8 @@
 from PySide6.QtWidgets import QPushButton, QHBoxLayout, QVBoxLayout, QLabel, QFrame
 from PySide6.QtCore import Qt, QSize
 
-from core.mock_data import SCREEN_TIME_TODAY, UNLOCKS_TODAY
+from core.mock_data import UNLOCKS_TODAY, current_screen_time_today
+from core.strings import t, DEFAULT_LANGUAGE
 
 
 class ScreenTimeWidget(QPushButton):
@@ -21,12 +22,12 @@ class ScreenTimeWidget(QPushButton):
 
         time_block = QVBoxLayout()
         time_block.setSpacing(2)
-        value = QLabel(SCREEN_TIME_TODAY)
-        value.setObjectName("screenTimeValue")
-        caption = QLabel("Screen time today")
-        caption.setObjectName("screenTimeCaption")
-        time_block.addWidget(value)
-        time_block.addWidget(caption)
+        self.value = QLabel(current_screen_time_today())
+        self.value.setObjectName("screenTimeValue")
+        self.caption = QLabel(t("screen_time_today", DEFAULT_LANGUAGE))
+        self.caption.setObjectName("screenTimeCaption")
+        time_block.addWidget(self.value)
+        time_block.addWidget(self.caption)
         layout.addLayout(time_block)
 
         layout.addStretch()
@@ -41,14 +42,14 @@ class ScreenTimeWidget(QPushButton):
         unlocks_value = QLabel(str(UNLOCKS_TODAY))
         unlocks_value.setObjectName("screenTimeUnlocksValue")
         unlocks_value.setAlignment(Qt.AlignmentFlag.AlignRight)
-        unlocks_caption = QLabel("Unlocks")
-        unlocks_caption.setObjectName("screenTimeUnlocksCaption")
-        unlocks_caption.setAlignment(Qt.AlignmentFlag.AlignRight)
+        self.unlocks_caption = QLabel(t("unlocks", DEFAULT_LANGUAGE))
+        self.unlocks_caption.setObjectName("screenTimeUnlocksCaption")
+        self.unlocks_caption.setAlignment(Qt.AlignmentFlag.AlignRight)
         unlocks_block.addWidget(unlocks_value)
-        unlocks_block.addWidget(unlocks_caption)
+        unlocks_block.addWidget(self.unlocks_caption)
         layout.addLayout(unlocks_block)
 
-        for lbl in (value, caption, unlocks_value, unlocks_caption):
+        for lbl in (self.value, self.caption, unlocks_value, self.unlocks_caption):
             lbl.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
         divider.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
 
@@ -62,3 +63,12 @@ class ScreenTimeWidget(QPushButton):
     def sizeHint(self):
         hint = super().sizeHint()
         return QSize(hint.width(), self._preferred_height)
+
+    def refresh_screen_time(self):
+        """Re-read the (possibly shuffled) total from mock_data -- called
+        after Shuffle so this widget doesn't keep showing a stale value."""
+        self.value.setText(current_screen_time_today())
+
+    def set_language(self, lang):
+        self.caption.setText(t("screen_time_today", lang))
+        self.unlocks_caption.setText(t("unlocks", lang))

@@ -6,9 +6,12 @@ class StatCard(QFrame):
         super().__init__()
         self.setObjectName("statCard")
         layout = QVBoxLayout(self)
-        value_lbl = QLabel(value)
-        value_lbl.setObjectName("statValue")
-        label_lbl = QLabel(label)
-        label_lbl.setObjectName("statLabel")
-        layout.addWidget(value_lbl)
-        layout.addWidget(label_lbl)
+        self.value_lbl = QLabel(value)
+        self.value_lbl.setObjectName("statValue")
+        self.label_lbl = QLabel(label)
+        self.label_lbl.setObjectName("statLabel")
+        layout.addWidget(self.value_lbl)
+        layout.addWidget(self.label_lbl)
+
+    def set_label(self, label):
+        self.label_lbl.setText(label)

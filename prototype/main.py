@@ -9,9 +9,23 @@ from ui.dashboard import DashboardScreen
 from ui.interruption import InterruptionScreen
 from ui.protection_customization import ProtectionCustomizationScreen
 from ui.fake_app_screen import FakeAppScreen
-from core.mock_data import DEFAULT_INTENTION, DEFAULT_PROTECTED_APPS, DEFAULT_APP_PROTECTION_LEVELS
+from core.mock_data import (
+    DEFAULT_INTENTION, DEFAULT_PROTECTED_APPS, DEFAULT_APP_PROTECTION_LEVELS,
+    shuffle_top_apps,
+)
+from core.strings import DEFAULT_LANGUAGE
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+STYLE_FILES = {"dark": "styles.qss", "light": "styles_light.qss"}
+
+
+def load_stylesheet(dark: bool) -> str:
+    """Read the dark or light QSS file's full text -- shared by main()'s
+    initial load and MainWindow's Light/Dark toggle so there's exactly one
+    place that knows the two files' names/location."""
+    filename = STYLE_FILES["dark" if dark else "light"]
+    with open(os.path.join(BASE_DIR, "ui", filename), "r", encoding="utf-8") as f:
+        return f.read()
 
 # --screen names -> the screen class to build in debug mode.
 DEBUG_SCREENS = {
@@ -52,6 +66,11 @@ class MainWindow(QMainWindow):
         # to InterruptionScreen (via _trigger_interruption) and kept in
         # sync with ProtectionCustomizationScreen's own display.
         self.app_protection_levels = dict(DEFAULT_APP_PROTECTION_LEVELS)
+        # Referee/demo utility state -- session-only (never persisted),
+        # both default to match the app's normal starting look (dark
+        # theme, English).
+        self.dark_mode = True
+        self.language = DEFAULT_LANGUAGE
 
         self.phone_home = PhoneHomeScreen(protected_apps=self.protected_apps)
         self.dashboard = DashboardScreen(protected_apps=self.protected_apps)
@@ -82,6 +101,9 @@ class MainWindow(QMainWindow):
     def _wire_navigation(self):
         self.phone_home.app_tapped.connect(self._on_phone_home_app_tapped)
         self.phone_home.open_dashboard.connect(lambda: self.stack.setCurrentWidget(self.dashboard))
+        self.phone_home.shuffle_clicked.connect(self._on_shuffle_clicked)
+        self.phone_home.theme_toggle_clicked.connect(self._on_theme_toggle_clicked)
+        self.phone_home.language_toggle_clicked.connect(self._on_language_toggle_clicked)
 
         # "Activate/Deactivate Focus Mode" toggles protection_enabled in
         # place, staying on Dashboard -- it reuses whatever apps/intention/
@@ -129,6 +151,28 @@ class MainWindow(QMainWindow):
 
     def _on_level_changed(self, app_name, level):
         self.app_protection_levels[app_name] = level
+
+    def _on_shuffle_clicked(self):
+        # Purely cosmetic, in-memory-only -- shuffle_top_apps() never
+        # touches core.mock_data.TOP_APPS itself, so this resets to the
+        # real values on restart. Interruption/FakeApp need no explicit
+        # refresh here -- they call time_spent_today_for() fresh every
+        # time they're opened, so they pick up the new numbers on their
+        # own next trigger.
+        shuffle_top_apps()
+        self.dashboard.refresh_usage_data()
+        self.phone_home.refresh_screen_time()
+
+    def _on_theme_toggle_clicked(self):
+        self.dark_mode = not self.dark_mode
+        QApplication.instance().setStyleSheet(load_stylesheet(self.dark_mode))
+        self.phone_home.set_theme_button_state(self.dark_mode)
+
+    def _on_language_toggle_clicked(self):
+        self.language = "th" if self.language == "en" else "en"
+        self.phone_home.set_language(self.language)
+        self.phone_home.set_language_button_state(self.language)
+        self.dashboard.set_language(self.language)
 
     def _on_phone_home_app_tapped(self, app_name, protected):
         if protected and self.protection_enabled:
@@ -212,13 +256,7 @@ def main():
     # Keep sys.argv[1:] (our own --screen/--app flags) away from QApplication,
     # which otherwise tries to interpret unrecognized arguments itself.
     app = QApplication(sys.argv[:1])
-
-    with open(
-        os.path.join(BASE_DIR, "ui", "styles.qss"),
-        "r",
-        encoding="utf-8"
-    ) as f:
-        app.setStyleSheet(f.read())
+    app.setStyleSheet(load_stylesheet(dark=True))  # dark is the default starting theme
 
     if args.screen:
         window = DebugWindow(args.screen, args.app, args.level)

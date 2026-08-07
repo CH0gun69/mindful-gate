@@ -4,6 +4,7 @@ No real usage tracking — this is purely for demo purposes.
 """
 
 import os
+import random
 
 ASSETS_ICONS_DIR = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets", "icons"
@@ -119,15 +120,66 @@ def _parse_minutes(time_str):
     return hours * 60 + minutes
 
 
+def _format_minutes(total_minutes):
+    """Inverse of _parse_minutes -- total minutes back into the same
+    'Xh Ym' / 'Ym' mock format TOP_APPS already uses."""
+    hours, minutes = divmod(total_minutes, 60)
+    if hours and minutes:
+        return f"{hours}h {minutes:02d}m"
+    if hours:
+        return f"{hours}h"
+    return f"{minutes}m"
+
+
+# Live, in-memory-only "time spent today" overrides, keyed by app name --
+# populated by shuffle_top_apps(), cleared by reset_top_apps_shuffle().
+# TOP_APPS itself (the constant above) is NEVER mutated, so a fresh
+# process (or an explicit reset) always goes back to the real hardcoded
+# values -- this is purely a cosmetic, session-only demo control so a
+# referee can see the ring chart/dashboard update live instead of always
+# showing identical static numbers.
+_shuffled_times = None
+SHUFFLE_RANGE_MINUTES = (5, 180)  # 5min-3h per app, per the feature ask
+
+
+def shuffle_top_apps():
+    """Randomize every TOP_APPS app's mock 'time spent today' in memory
+    only. Never touches TOP_APPS -- callers just need to re-render
+    whatever they already built from usage_breakdown()/
+    time_spent_today_for()/current_screen_time_today() afterward."""
+    global _shuffled_times
+    _shuffled_times = {
+        app["name"]: _format_minutes(random.randint(*SHUFFLE_RANGE_MINUTES))
+        for app in TOP_APPS
+    }
+
+
+def reset_top_apps_shuffle():
+    """Back to the real TOP_APPS values -- not currently wired to any UI
+    control, but kept as the explicit inverse of shuffle_top_apps() rather
+    than only being resettable by restarting the process."""
+    global _shuffled_times
+    _shuffled_times = None
+
+
+def _time_for(app):
+    """This TOP_APPS entry's current time string -- the live shuffled
+    override if a shuffle is active, else its real value."""
+    if _shuffled_times is not None:
+        return _shuffled_times.get(app["name"], app["time"])
+    return app["time"]
+
+
 def time_spent_today_for(name):
-    """This app's already-formatted "Xh Ym" time entry from TOP_APPS, or
-    None if it has no mock usage entry -- e.g. a protectable app the user
-    checked that isn't in the mock usage data. Callers (InterruptionScreen,
-    FakeAppScreen) should omit their "time spent today" nudge gracefully in
-    that case rather than show "0m" or crash."""
+    """This app's current "Xh Ym" time (shuffled if a shuffle is active,
+    otherwise its real TOP_APPS entry), or None if it has no mock usage
+    entry at all -- e.g. a protectable app the user checked that isn't in
+    the mock usage data. Callers (InterruptionScreen, FakeAppScreen)
+    should omit their "time spent today" nudge gracefully in that case
+    rather than show "0m" or crash."""
     for app in TOP_APPS:
         if app["name"] == name:
-            return app["time"]
+            return _time_for(app)
     return None
 
 
@@ -135,11 +187,24 @@ def usage_breakdown():
     """(name, minutes, time_str, color) tuples derived from TOP_APPS, for
     Dashboard's screen-time ring chart + legend -- deliberately not a
     separate hardcoded dataset, so it can't drift out of sync with TOP_APPS
-    (their minutes already sum to exactly SCREEN_TIME_TODAY)."""
+    (their minutes sum to exactly SCREEN_TIME_TODAY normally, or to
+    current_screen_time_today() when a shuffle is active)."""
     return [
-        (app["name"], _parse_minutes(app["time"]), app["time"], glyph_for(app["name"])[1])
+        (app["name"], _parse_minutes(_time_for(app)), _time_for(app), glyph_for(app["name"])[1])
         for app in TOP_APPS
     ]
+
+
+def current_screen_time_today():
+    """The big screen-time total shown on Phone Home/Dashboard --
+    SCREEN_TIME_TODAY normally (which already equals this sum by
+    construction), or the live sum of shuffled per-app times when a
+    shuffle is active, so the displayed total never contradicts what's
+    shuffled underneath it."""
+    if _shuffled_times is None:
+        return SCREEN_TIME_TODAY
+    total = sum(_parse_minutes(_time_for(app)) for app in TOP_APPS)
+    return _format_minutes(total)
 
 
 # Ambient 2-state color tinting for Dashboard's screen-time display -- no
@@ -153,8 +218,12 @@ AMBIENT_COLOR_HIGH = "#d9a974"  # soft amber, not red -- ambient, not alarming
 
 
 def is_high_usage():
-    """Whether SCREEN_TIME_TODAY is at/above AMBIENT_THRESHOLD_MINUTES."""
-    return _parse_minutes(SCREEN_TIME_TODAY) >= AMBIENT_THRESHOLD_MINUTES
+    """Whether the current screen time total (shuffled if active, else
+    SCREEN_TIME_TODAY) is at/above AMBIENT_THRESHOLD_MINUTES -- reads
+    current_screen_time_today() rather than the raw constant so the
+    ambient tint stays consistent with whatever total is actually
+    displayed after a shuffle."""
+    return _parse_minutes(current_screen_time_today()) >= AMBIENT_THRESHOLD_MINUTES
 
 
 def usage_color(is_high: bool) -> str:

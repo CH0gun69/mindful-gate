@@ -104,6 +104,32 @@ This remains a manual, one-time port (per the original KISS decision, no sync to
 whoever picks up the next round of Python-side changes will need to repeat this pass by
 diffing against this note's "as of" state, same as this pass did against the old note.
 
+## Referee/demo utility controls on Phone Home (Shuffle, Light/Dark, TH/EN)
+
+Three compact widget-style controls sit directly below the screen-time widget on Phone
+Home (`PhoneHomeScreen._build_controls_row()`), all session-only (never persisted, all
+reset to defaults on restart):
+
+- **Shuffle** (`core.mock_data.shuffle_top_apps()`): randomizes each `TOP_APPS` app's mock
+  "time spent today" in memory only — `TOP_APPS` itself is never mutated. Refreshes the
+  screen-time widget's total, Dashboard's ring/legend/ambient tint, and (implicitly, since
+  they read the data fresh every time they're opened) the Interruption/Fake App
+  "time spent" nudges.
+- **Light/Dark** (`main.load_stylesheet()` + new `prototype/ui/styles_light.qss`): swaps
+  the whole app's stylesheet at runtime via `app.setStyleSheet()`. Brand accent colors
+  (teal, the Focus-Mode-active green) are identical in both files on purpose. Two things
+  this swap can't reach, both documented at the top of `styles_light.qss`: the Fake App
+  screen's feed/shorts/messages body content (deliberately stays dark, mimics a real
+  app keeping its own theme independent of the OS), and `ToggleSwitch`/`BreathingCircle`
+  (self-painted in Python, never consult the app stylesheet at all — confirmed their
+  hardcoded colors still read fine against the light theme regardless).
+- **TH/EN** (`core/strings.py`'s `t()`): retranslates Phone Home + Dashboard's own UI copy
+  (captions, labels, button text). **Deliberately scoped to just these two screens for
+  now** — Interruption, Set Your Intention, and Fake App remain English-only. This is a
+  scope decision, not an oversight: don't "fix" it later without checking whether it's
+  actually wanted first. Real app brand names (Instagram, TikTok, etc.) are never
+  translated anywhere, on any screen — they're proper nouns, not UI copy.
+
 ## Architecture notes
 
 - prototype/core/ = business/mock data logic (mirrors ClipPortal's core/)

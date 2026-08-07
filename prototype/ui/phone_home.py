@@ -1,9 +1,10 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QLabel, QFrame
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QLabel, QFrame, QPushButton
 from PySide6.QtCore import Qt, Signal
 
 from core.mock_data import (
     TOP_APPS, PROTECTABLE_APPS, DEFAULT_PROTECTED_APPS, glyph_for, icon_path_for,
 )
+from core.strings import t, DEFAULT_LANGUAGE
 from ui.widgets.app_icon import AppIcon
 from ui.widgets.screen_time_widget import ScreenTimeWidget
 
@@ -42,6 +43,14 @@ class PhoneHomeScreen(QWidget):
 
     app_tapped = Signal(str, bool)
     open_dashboard = Signal()
+    # Referee/demo utility controls -- deliberately plain no-arg signals,
+    # same as DashboardScreen.focus_toggled: MainWindow owns the actual
+    # shuffle/theme/language state and tells this screen (and others) what
+    # to display afterward, this screen just reports "the button was
+    # tapped".
+    shuffle_clicked = Signal()
+    theme_toggle_clicked = Signal()
+    language_toggle_clicked = Signal()
 
     def __init__(self, protected_apps=None):
         super().__init__()
@@ -56,6 +65,29 @@ class PhoneHomeScreen(QWidget):
         e.g. after the user activates a new selection on the Setup screen."""
         self._protected = set(protected_apps)
 
+    def refresh_screen_time(self):
+        """Re-read the (possibly shuffled) total -- called by MainWindow
+        after Shuffle."""
+        self.screen_time_widget.refresh_screen_time()
+
+    def set_theme_button_state(self, dark: bool):
+        # Icon/label always shows what tapping it would switch TO (matches
+        # a typical OS dark/light toggle affordance), same pattern as the
+        # language button below. English-only regardless of the TH/EN
+        # toggle -- these three are meta/demo controls, not simulated
+        # phone UI, so they're deliberately exempt from translation.
+        self.theme_btn.setText("☀️ Light" if dark else "🌙 Dark")
+
+    def set_language_button_state(self, lang):
+        self.lang_btn.setText("TH" if lang == "en" else "EN")
+
+    def set_language(self, lang):
+        """Retranslate this screen's own UI copy -- app names and dock
+        labels stay untranslated (real/app-like brand names, not UI
+        copy), only the screen-time widget's captions change."""
+        self.screen_time_widget.set_language(lang)
+        self.shuffle_btn.setText(f"🔀 {t('shuffle', lang)}")
+
     def _build_ui(self):
         root = QVBoxLayout(self)
         root.setContentsMargins(0, 0, 0, 20)
@@ -64,6 +96,7 @@ class PhoneHomeScreen(QWidget):
         root.addWidget(self._build_status_bar())
         root.addWidget(self._build_app_grid())
         root.addWidget(self._build_screen_time_widget())
+        root.addWidget(self._build_controls_row())
         root.addStretch()
         root.addWidget(self._build_dock())
 
@@ -112,9 +145,44 @@ class PhoneHomeScreen(QWidget):
         # up instead of feeling bolted on.
         layout.setContentsMargins(20, 8, 20, 8)
 
-        widget = ScreenTimeWidget()
-        widget.clicked.connect(lambda: self.open_dashboard.emit())
-        layout.addWidget(widget)
+        self.screen_time_widget = ScreenTimeWidget()
+        self.screen_time_widget.clicked.connect(lambda: self.open_dashboard.emit())
+        layout.addWidget(self.screen_time_widget)
+
+        return wrap
+
+    def _build_controls_row(self):
+        """Three compact referee/demo utility controls directly below the
+        screen-time widget, styled like small versions of the same card
+        (see QPushButton#miniControlBtn in styles.qss) -- Shuffle (randomize
+        mock usage data live), Light/Dark (swap the whole app's stylesheet),
+        TH/EN (retranslate Phone Home + Dashboard). All three just emit a
+        signal; MainWindow owns the actual state and tells every affected
+        screen what to show afterward, same split as everything else in
+        this app."""
+        wrap = QWidget()
+        wrap.setObjectName("phoneHomeScreenTimeWrap")  # same transparent bg + inset as above
+        layout = QHBoxLayout(wrap)
+        layout.setContentsMargins(20, 0, 20, 0)
+        layout.setSpacing(8)
+
+        self.shuffle_btn = QPushButton(f"🔀 {t('shuffle', DEFAULT_LANGUAGE)}")
+        self.shuffle_btn.setObjectName("miniControlBtn")
+        self.shuffle_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.shuffle_btn.clicked.connect(lambda: self.shuffle_clicked.emit())
+        layout.addWidget(self.shuffle_btn)
+
+        self.theme_btn = QPushButton("☀️ Light")  # dark is the default starting theme
+        self.theme_btn.setObjectName("miniControlBtn")
+        self.theme_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.theme_btn.clicked.connect(lambda: self.theme_toggle_clicked.emit())
+        layout.addWidget(self.theme_btn)
+
+        self.lang_btn = QPushButton("TH")  # en is the default starting language
+        self.lang_btn.setObjectName("miniControlBtn")
+        self.lang_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.lang_btn.clicked.connect(lambda: self.language_toggle_clicked.emit())
+        layout.addWidget(self.lang_btn)
 
         return wrap
 

@@ -1,6 +1,35 @@
+/* Light-mode counterpart to styles.qss -- same selectors/structure, just
+   an inverted chrome palette (light background, dark text). Swapped in at
+   runtime via the Phone Home Light/Dark control (see main.py's
+   _on_theme_toggle_clicked) -- app.setStyleSheet() affects every screen
+   immediately since both files share identical objectNames.
+
+   Brand/accent colors (teal #93cfc4, the green Focus-Mode-active fill,
+   each app's own icon color) are kept IDENTICAL to the dark file on
+   purpose, for brand consistency -- only the neutral chrome (page/card
+   backgrounds, borders, body/muted/dim text) inverts.
+
+   Two deliberate exceptions, both documented inline below:
+   1. The Fake App screen's feed/shorts/messages BODY content (the mocked
+      Instagram/TikTok/etc. UI) stays dark regardless of this toggle --
+      only its header bar flips. Real apps commonly keep their own theme
+      independent of the OS theme, and this content is explicitly designed
+      to "read as a real app, not part of this app's own UI" (see
+      styles.qss's own comment on that section) -- inverting it too would
+      be a lot of extra surface for a demo aesthetic choice that isn't
+      part of mindful-gate's own UI anyway.
+   2. ToggleSwitch and BreathingCircle (ui/widgets/toggle_switch.py,
+      breathing_circle.py) are entirely self-painted in Python -- they
+      never consult the app stylesheet at all, so this file cannot affect
+      them either way. Confirmed via manual testing that their hardcoded
+      colors (dark-gray "off" track, near-white thumb, translucent teal
+      circle) still render with acceptable contrast against this light
+      theme's backgrounds regardless -- not an oversight, just outside
+      what a pure QSS swap can reach. */
+
 QWidget {
-    background-color: #14161a;
-    color: #eef0f2;
+    background-color: #f4f5f7;
+    color: #14161a;
     font-family: "Segoe UI", "SF Pro Text", sans-serif;
 }
 QLabel#screenTitle {
@@ -13,22 +42,22 @@ QLabel#bigScreenTime {
     color: #93cfc4;
 }
 QLabel#caption {
-    color: #9aa1ab;
+    color: #6b7280;
     font-size: 13px;
 }
 QLabel#sectionLabel {
     font-size: 14px;
     font-weight: 600;
-    color: #c9cdd3;
+    color: #3a3f47;
     margin-top: 8px;
 }
 QFrame#statCard {
-    background-color: #1d2026;
+    background-color: #ffffff;
     border-radius: 10px;
     padding: 12px;
 }
 QFrame#screenTimeCard {
-    background-color: #1d2026;
+    background-color: #ffffff;
     border-radius: 14px;
     padding: 18px;
 }
@@ -39,11 +68,11 @@ QLabel#statValue {
 }
 QLabel#statLabel {
     background: transparent;
-    color: #9aa1ab;
+    color: #6b7280;
     font-size: 12px;
 }
 QFrame#appRow {
-    background-color: #1d2026;
+    background-color: #ffffff;
     border-radius: 8px;
     padding: 8px;
 }
@@ -59,7 +88,7 @@ QLabel#badge {
 }
 QLabel#appTime {
     background: transparent;
-    color: #9aa1ab;
+    color: #6b7280;
 }
 QPushButton#primaryBtn {
     background-color: #93cfc4;
@@ -72,22 +101,21 @@ QPushButton#primaryBtn {
 QPushButton#primaryBtn:hover {
     background-color: #a7dad1;
 }
-/* Dashboard's Focus Mode button: two explicit states instead of one
-   fixed look -- idle (never activated / just turned off) reads as a
-   neutral, waiting-to-be-clicked gray; active reads as a calm green
-   (not red -- this app's ambient-tint work already established red/
-   alarming styling is off-limits, and green universally reads as "on"
-   without implying a warning). */
+/* Dashboard's Focus Mode button: idle reads as a neutral, waiting-to-be-
+   clicked light gray (was dark gray in the dark theme -- same "neutral,
+   not attention-grabbing" intent, just inverted so it doesn't read as an
+   oddly-heavy dark button on an otherwise light page); active keeps the
+   same calm green fill (self-contained, unaffected by page theme). */
 QPushButton#focusBtnIdle {
-    background-color: #3a3f47;
-    color: #eef0f2;
+    background-color: #e2e4e8;
+    color: #14161a;
     border-radius: 10px;
     padding: 12px;
     font-weight: 600;
     font-size: 14px;
 }
 QPushButton#focusBtnIdle:hover {
-    background-color: #454b54;
+    background-color: #d7dade;
 }
 QPushButton#focusBtnActive {
     background-color: #3ebd5e;
@@ -102,15 +130,15 @@ QPushButton#focusBtnActive:hover {
 }
 QPushButton#secondaryBtn {
     background-color: transparent;
-    color: #eef0f2;
-    border: 1px solid #3a3f47;
+    color: #14161a;
+    border: 1px solid #d7dade;
     border-radius: 10px;
     padding: 12px;
     font-size: 14px;
 }
 QPushButton#linkBtn, QPushButton#simulateBtn {
     background-color: transparent;
-    color: #9aa1ab;
+    color: #6b7280;
     border: none;
     padding: 8px;
     font-size: 13px;
@@ -118,7 +146,7 @@ QPushButton#linkBtn, QPushButton#simulateBtn {
 }
 QLabel#interruptTitle {
     font-size: 18px;
-    color: #9aa1ab;
+    color: #6b7280;
 }
 QLabel#interruptQuestion {
     font-size: 30px;
@@ -129,7 +157,7 @@ QLabel#intentionQuote {
     font-style: italic;
     color: #93cfc4;
     padding: 16px;
-    background-color: #1d2026;
+    background-color: #ffffff;
     border-radius: 10px;
 }
 QCheckBox {
@@ -137,15 +165,15 @@ QCheckBox {
     padding: 4px;
 }
 QLineEdit#intentionInput {
-    background-color: #1d2026;
-    border: 1px solid #3a3f47;
+    background-color: #ffffff;
+    border: 1px solid #d7dade;
     border-radius: 8px;
     padding: 10px;
     font-size: 14px;
 }
 QPushButton#secondaryBtn:disabled {
-    color: #6b7076;
-    border-color: #2a2e34;
+    color: #9199a3;
+    border-color: #e2e4e8;
 }
 QPushButton#reaffirmChip {
     background-color: transparent;
@@ -160,13 +188,13 @@ QPushButton#reaffirmChip:hover {
 }
 QLabel#levelLabel {
     background: transparent;
-    color: #c9cdd3;
+    color: #3a3f47;
     font-size: 13px;
     font-weight: 600;
 }
 QSlider#levelSlider::groove:horizontal {
     height: 4px;
-    background: #3a3f47;
+    background: #d7dade;
     border-radius: 2px;
 }
 QSlider#levelSlider::sub-page:horizontal {
@@ -177,37 +205,37 @@ QSlider#levelSlider::handle:horizontal {
     width: 16px;
     height: 16px;
     margin: -6px 0;
-    background: #eef0f2;
+    background: #3a3f47;
     border-radius: 8px;
 }
 QLabel#timeSpentNote {
-    color: #7d8590;
+    color: #6b7280;
     font-size: 12px;
     background: transparent;
 }
 QLabel#fakeAppSubtitle {
     background-color: transparent;
-    color: #9aa1ab;
+    color: #6b7280;
     font-size: 11px;
 }
 
 /* ===== Phone Home Screen ===== */
 QWidget#phoneHomeScreen {
-    background-color: #14161a;
+    background-color: #f4f5f7;
 }
 QFrame#phoneStatusBar {
-    background-color: #14161a;
-    border-bottom: 1px solid #22262c;
+    background-color: #f4f5f7;
+    border-bottom: 1px solid #e2e4e8;
 }
 QLabel#statusBarTime {
     background-color: transparent;
-    color: #eef0f2;
+    color: #14161a;
     font-size: 15px;
     font-weight: 600;
 }
 QLabel#statusBarIcons {
     background-color: transparent;
-    color: #9aa1ab;
+    color: #6b7280;
     font-size: 12px;
 }
 QWidget#phoneHomeGrid {
@@ -224,7 +252,7 @@ QPushButton#appIcon:pressed {
 }
 QLabel#appIconLabel {
     background-color: transparent;
-    color: #c9cdd3;
+    color: #3a3f47;
     font-size: 11px;
 }
 QWidget#phoneHomeScreenTimeWrap {
@@ -233,24 +261,24 @@ QWidget#phoneHomeScreenTimeWrap {
 /* Shuffle / Light-Dark / TH-EN referee controls, directly below the
    screen-time widget -- same card color as that widget, just compact. */
 QPushButton#miniControlBtn {
-    background-color: #1d2026;
+    background-color: #ffffff;
     border: none;
     border-radius: 12px;
     padding: 10px 4px;
     font-size: 12px;
-    color: #c9cdd3;
+    color: #3a3f47;
 }
 QPushButton#miniControlBtn:pressed {
-    background-color: #23272f;
+    background-color: #e5e7ea;
 }
 QPushButton#screenTimeWidget {
-    background-color: #1d2026;
+    background-color: #ffffff;
     border: none;
     border-radius: 14px;
     text-align: left;
 }
 QPushButton#screenTimeWidget:pressed {
-    background-color: #23272f;
+    background-color: #e5e7ea;
 }
 QLabel#screenTimeValue {
     background: transparent;
@@ -260,25 +288,25 @@ QLabel#screenTimeValue {
 }
 QLabel#screenTimeCaption {
     background: transparent;
-    color: #9aa1ab;
+    color: #6b7280;
     font-size: 12px;
 }
 QFrame#screenTimeDivider {
-    background-color: #3a3f47;
+    background-color: #d7dade;
 }
 QLabel#screenTimeUnlocksValue {
     background: transparent;
-    color: #eef0f2;
+    color: #14161a;
     font-size: 18px;
     font-weight: 700;
 }
 QLabel#screenTimeUnlocksCaption {
     background: transparent;
-    color: #9aa1ab;
+    color: #6b7280;
     font-size: 11px;
 }
 QFrame#phoneDock {
-    background-color: #1d2026;
+    background-color: #ffffff;
     border-radius: 20px;
 }
 QPushButton#dockIcon {
@@ -287,22 +315,24 @@ QPushButton#dockIcon {
     padding: 0px;
 }
 QPushButton#dockIcon QLabel#appIconLabel {
-    color: #9aa1ab;
+    color: #6b7280;
     font-size: 10px;
 }
 
-/* ===== Fake App Screen ===== */
+/* ===== Fake App Screen =====
+   Only the header bar flips to light chrome -- the feed/shorts/messages
+   BODY content below stays dark on purpose, see this file's top comment. */
 QWidget#fakeAppScreen {
-    background-color: #14161a;
+    background-color: #f4f5f7;
 }
 QFrame#fakeAppHeader {
-    background-color: #14161a;
-    border-bottom: 1px solid #22262c;
+    background-color: #f4f5f7;
+    border-bottom: 1px solid #e2e4e8;
 }
 QPushButton#fakeAppBackBtn {
     background-color: transparent;
     border: none;
-    color: #eef0f2;
+    color: #14161a;
     font-size: 18px;
     padding: 4px 8px;
 }
@@ -311,14 +341,12 @@ QPushButton#fakeAppBackBtn:pressed {
 }
 QLabel#fakeAppTitle {
     background-color: transparent;
-    color: #eef0f2;
+    color: #14161a;
     font-size: 17px;
     font-weight: 600;
 }
 /* --- feed style: Instagram / Facebook / X (Twitter) / Reddit ---
-   Leans neutral/realistic rather than mindful-gate's own teal-accent
-   design system on purpose -- this is meant to read as "a real app",
-   not as part of this app's own UI. */
+   Unchanged from the dark theme -- see this file's top comment (exception 1). */
 QFrame#feedPostCard {
     background-color: #1c1c1e;
     border-radius: 10px;
@@ -348,11 +376,6 @@ QPushButton#feedActionIcon {
     border: none;
     color: #e8e8e8;
     font-size: 20px;
-    /* Fixed square (not padding-around-content) so the click-flash
-       background forms a consistent circle regardless of how wide each
-       glyph happens to render -- auto-sizing to content made the
-       highlight crop unevenly around some icons (looked uncanny,
-       confirmed via manual testing). */
     min-width: 34px; max-width: 34px;
     min-height: 34px; max-height: 34px;
     border-radius: 17px;
@@ -411,10 +434,10 @@ QLabel#feedCommentCount {
     font-size: 11px;
 }
 
-/* Scrollable feed/messages content -- QWidget's own global rule already
-   covers the dark background; this just removes the frame border and
-   gives the vertical scrollbar a slim, dark-theme-appropriate look
-   instead of Qt's default light one. */
+/* Scrollable feed/messages content -- handle color left as the same
+   mid-gray as the dark theme; it reads with reasonable contrast against
+   either a dark feed body or this screen's light header, so it doesn't
+   need its own light-mode variant. */
 QScrollArea#feedScrollArea, QScrollArea#messagesChatScrollArea,
 QScrollArea#protectionScrollArea {
     border: none;
@@ -442,7 +465,7 @@ QScrollArea#protectionScrollArea QScrollBar::sub-line:vertical {
     height: 0px;
 }
 
-/* --- shorts style: TikTok / YouTube --- */
+/* --- shorts style: TikTok / YouTube --- unchanged, see exception 1 */
 QFrame#shortsWrap {
     background-color: #000000;
 }
@@ -478,7 +501,7 @@ QLabel#shortsEngageCount {
     font-weight: 600;
 }
 
-/* --- messages style --- */
+/* --- messages style --- unchanged, see exception 1 */
 QFrame#messagesSidebar {
     background-color: #17181a;
     border-right: 1px solid #26282c;
