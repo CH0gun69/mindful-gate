@@ -171,14 +171,24 @@ html,body{
 /* Instagram/X action row: icon-only, evenly spaced */
 .actions-icons{ display:flex; align-items:center; justify-content:space-around; padding:4px 10px 8px; }
 .action-btn{
-  background:none; border:none; cursor:pointer; padding:2px 6px;
+  background:none; border:none; cursor:pointer;
   color:#e8e8e8; font-size:20px; transition:color .15s ease;
+  /* Fixed circle (not padding-around-content) so the click-flash
+     background forms a consistent shape regardless of how wide each
+     glyph renders -- auto-sizing to content made the highlight crop
+     unevenly around some icons on the Python side (same fix ported
+     here). */
+  width:34px; height:34px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
 }
-.action-btn.small{ color:#a8a8a8; font-size:15px; }
+.action-btn.small{ color:#a8a8a8; font-size:15px; width:28px; height:28px; }
 
 /* Facebook action row: full-width labeled buttons + thin dividers */
 .actions-labeled{ display:flex; border-top:1px solid #2a2a2c; }
-.action-btn.labeled{ flex:1; padding:8px 0; color:#b8b8b8; font-size:12px; font-weight:600; }
+.action-btn.labeled{
+  flex:1; width:auto; height:auto; border-radius:8px;
+  padding:8px 0; color:#b8b8b8; font-size:12px; font-weight:600;
+}
 .action-divider{ width:1px; background:#2a2a2c; margin:6px 0; }
 
 /* Reddit: vertical vote cluster on the left, not a bottom row */
@@ -272,7 +282,7 @@ html,body{
       <div class="screen-time-card">
         <div class="st-top">
           <div>
-            <div class="big-time">4h 32m</div>
+            <div class="big-time" id="bigTimeValue">4h 32m</div>
             <div class="caption">Screen time today</div>
           </div>
           <svg id="ringChart" viewBox="0 0 112 112" width="112" height="112"></svg>
@@ -374,6 +384,19 @@ const TOP_APPS = [
 ];
 const PROTECTABLE_APPS = ["Instagram","TikTok","X (Twitter)","YouTube","Facebook","Reddit"];
 let currentIntention = "Only reply to messages";
+
+// Ambient 2-state color tinting for Dashboard's screen-time display -- no
+// numeric score, no "Attention"/"Warning" label anywhere, just a color
+// shift on elements that already exist (the big time value + the ring's
+// overall tone). 240 min (4h) chosen because SCREEN_TIME_TODAY (4h 32m)
+// already crosses it, so both states are demo-visible without faking
+// data. Mirrors core/mock_data.py's AMBIENT_* constants exactly.
+const SCREEN_TIME_TODAY = "4h 32m";
+const AMBIENT_THRESHOLD_MINUTES = 240;
+const AMBIENT_COLOR_NORMAL = "#8fd3c7";  // existing teal accent, unchanged look below the threshold
+const AMBIENT_COLOR_HIGH = "#e0a96d";    // soft amber, not red -- ambient, not alarming
+function isHighUsage(){ return parseMinutes(SCREEN_TIME_TODAY) >= AMBIENT_THRESHOLD_MINUTES; }
+function usageColor(isHigh){ return isHigh ? AMBIENT_COLOR_HIGH : AMBIENT_COLOR_NORMAL; }
 
 // ===== Fake App mock content (mirrors core/mock_data.py) =====
 const MOCK_IMAGES = [
@@ -498,6 +521,14 @@ function buildRingChart(){
   const total = TOP_APPS.reduce((sum, app) => sum + parseMinutes(app.time), 0);
   if(total <= 0) return;
   const cx = 56, cy = 56, rOuter = 52, rInner = 36, gapDeg = 3;
+  // Ring outline reflects the ambient usage-level tint (see
+  // AMBIENT_COLOR_NORMAL/HIGH above) -- individual segment *fill* colors
+  // below are untouched either way, they carry per-app meaning. Still
+  // does its original contrast job too: X (Twitter)'s own color
+  // (#1d2026) is identical to this card's background, so without an
+  // outline that segment would be invisible -- both ambient colors are
+  // light enough to stay visible against any segment's dark fill.
+  const strokeColor = usageColor(isHighUsage());
   let angle = 0;
   const NS = 'http://www.w3.org/2000/svg';
   TOP_APPS.forEach(app=>{
@@ -507,15 +538,17 @@ function buildRingChart(){
     const path = document.createElementNS(NS, 'path');
     path.setAttribute('d', describeRingSegment(cx, cy, rOuter, rInner, angle, angle+drawn));
     path.setAttribute('fill', color);
-    // Reuses the palette's existing #3a3f47 border color, same reasoning
-    // as the Python widget: X (Twitter)'s own color (#1d2026) is identical
-    // to this card's background, so without an outline that segment would
-    // be invisible.
-    path.setAttribute('stroke', '#3a3f47');
+    path.setAttribute('stroke', strokeColor);
     path.setAttribute('stroke-width', '1');
     svg.appendChild(path);
     angle += span;
   });
+}
+
+function applyAmbientTint(){
+  const tint = usageColor(isHighUsage());
+  const el = document.getElementById('bigTimeValue');
+  if(el) el.style.color = tint;
 }
 
 function buildUsageLegend(){
@@ -637,8 +670,18 @@ function buildActionsHTML(config){
   ).join('') + `</div>`;
 }
 
+// TikTok and YouTube happened to land on the same MOCK_IMAGES bucket via
+// mockImageIndexFor()'s general-purpose hash (confirmed via manual
+// testing -- both apps showed the identical photo). Shorts only ever has
+// these two apps, so just guarantee they differ explicitly here rather
+// than reworking the general hash (which needs to keep working well for
+// the feed style's many distinct per-post indices) -- same fix as the
+// Python side's SHORTS_IMAGE_OFFSET.
+const SHORTS_IMAGE_OFFSET = { "TikTok": 0, "YouTube": 3 };
+
 function buildShortsHTML(name){
-  const imgPath = mockImagePath(mockImageIndexFor(name));
+  const offset = SHORTS_IMAGE_OFFSET[name] || 0;
+  const imgPath = mockImagePath(mockImageIndexFor(name, offset));
   const handle = '@' + name.toLowerCase().replace(/[^a-z0-9]/g, '') + '_demo';
   // Engagement icons are static display, not clickable -- matches the
   // Python version (QLabel, not QPushButton, for these specifically).
@@ -669,17 +712,39 @@ function buildMessagesHTML(){
     + `</div>`;
 }
 
+function hexToRgb(hex){
+  return [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16));
+}
+
 // Cosmetic-only press feedback: briefly recolor a clicked action/vote
 // button, then revert -- no real like/vote state tracked anywhere. Event
 // delegation on the body so freshly-rebuilt buttons never need rebinding.
+//
+// Reddit's vote arrows (.vote-btn) get a plain color-only flash -- compared
+// both live against a background-pill version and preferred the simpler
+// look here specifically. Every other action button gets a translucent
+// background pill too, not just a color change: color emoji glyphs (💬,
+// 🔖, 👍) are rendered through the system's color-emoji font as
+// multi-color glyphs with their own embedded color data, so a CSS `color`
+// change alone has no visible effect on them (confirmed by manual testing
+// on the Python side, same underlying rendering behavior here).
 document.getElementById('fakeAppBody').addEventListener('click', (e) => {
   const btn = e.target.closest('.action-btn, .vote-btn');
   if(!btn) return;
   const flash = btn.getAttribute('data-flash');
   if(!flash) return;
+
   btn.style.color = flash;
+  if(!btn.classList.contains('vote-btn')){
+    const [r, g, b] = hexToRgb(flash);
+    btn.style.backgroundColor = `rgba(${r}, ${g}, ${b}, 0.24)`;
+  }
+
   clearTimeout(btn._flashTimer);
-  btn._flashTimer = setTimeout(() => { btn.style.color = ''; }, 450);
+  btn._flashTimer = setTimeout(() => {
+    btn.style.color = '';
+    btn.style.backgroundColor = '';
+  }, 450);
 });
 
 // Purely-visual iOS-style rubber-band overscroll bounce on .scroll-area
@@ -763,6 +828,7 @@ buildDock();
 buildProtectableApps();
 buildRingChart();
 buildUsageLegend();
+applyAmbientTint();
 </script>
 </body>
 </html>
