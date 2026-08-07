@@ -402,17 +402,20 @@ QLabel#feedCommentCount {
    covers the dark background; this just removes the frame border and
    gives the vertical scrollbar a slim, dark-theme-appropriate look
    instead of Qt's default light one. */
-QScrollArea#feedScrollArea, QScrollArea#messagesChatScrollArea {
+QScrollArea#feedScrollArea, QScrollArea#messagesChatScrollArea,
+QScrollArea#protectionScrollArea {
     border: none;
 }
 QScrollArea#feedScrollArea QScrollBar:vertical,
-QScrollArea#messagesChatScrollArea QScrollBar:vertical {
+QScrollArea#messagesChatScrollArea QScrollBar:vertical,
+QScrollArea#protectionScrollArea QScrollBar:vertical {
     background: transparent;
     width: 6px;
     margin: 0px;
 }
 QScrollArea#feedScrollArea QScrollBar::handle:vertical,
-QScrollArea#messagesChatScrollArea QScrollBar::handle:vertical {
+QScrollArea#messagesChatScrollArea QScrollBar::handle:vertical,
+QScrollArea#protectionScrollArea QScrollBar::handle:vertical {
     background: #3a3f47;
     border-radius: 3px;
     min-height: 24px;
@@ -420,7 +423,9 @@ QScrollArea#messagesChatScrollArea QScrollBar::handle:vertical {
 QScrollArea#feedScrollArea QScrollBar::add-line:vertical,
 QScrollArea#feedScrollArea QScrollBar::sub-line:vertical,
 QScrollArea#messagesChatScrollArea QScrollBar::add-line:vertical,
-QScrollArea#messagesChatScrollArea QScrollBar::sub-line:vertical {
+QScrollArea#messagesChatScrollArea QScrollBar::sub-line:vertical,
+QScrollArea#protectionScrollArea QScrollBar::add-line:vertical,
+QScrollArea#protectionScrollArea QScrollBar::sub-line:vertical {
     height: 0px;
 }
 

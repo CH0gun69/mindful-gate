@@ -10,6 +10,7 @@ from core.mock_data import (
 from ui.widgets.svg_icon import white_svg_pixmap
 from ui.widgets.toggle_switch import ToggleSwitch
 from ui.widgets.level_slider import LevelSlider
+from ui.widgets.elastic_scroll_area import ElasticScrollArea
 
 ROW_AVATAR_SIZE = 40
 LEVEL_ANIM_MS = 180
@@ -47,13 +48,27 @@ class ProtectionCustomizationScreen(QWidget):
         self._build_ui()
 
     def _build_ui(self):
-        root = QVBoxLayout(self)
-        root.setContentsMargins(32, 32, 32, 32)
-        root.setSpacing(16)
+        # This screen has grown a lot since the Setup+Customization merge
+        # (6 app rows, each able to expand a level control) -- tall enough
+        # that with several apps protected at once, the fixed 780px window
+        # had no room left and Qt was silently compressing every row below
+        # its natural size to fit (confirmed via sizeHint()/actual-height
+        # mismatch: a level row's container measured shorter than its own
+        # sizeHint), which is what made the slider visually spill outside
+        # its row's box when expanded. Wrapping the body in a scroll area
+        # (same ElasticScrollArea used for Fake App's feed/messages) lets
+        # it scroll instead of being forced to overlap.
+        page_root = QVBoxLayout(self)
+        page_root.setContentsMargins(0, 0, 0, 0)
+        page_root.setSpacing(0)
+
+        header = QVBoxLayout()
+        header.setContentsMargins(32, 32, 32, 0)
+        header.setSpacing(16)
 
         title = QLabel("Set Your Intention")
         title.setObjectName("screenTitle")
-        root.addWidget(title)
+        header.addWidget(title)
 
         subtitle = QLabel(
             "Choose which apps to protect, how firmly each should ask you "
@@ -61,7 +76,14 @@ class ProtectionCustomizationScreen(QWidget):
         )
         subtitle.setObjectName("caption")
         subtitle.setWordWrap(True)
-        root.addWidget(subtitle)
+        header.addWidget(subtitle)
+
+        page_root.addLayout(header)
+
+        body = QWidget()
+        root = QVBoxLayout(body)
+        root.setContentsMargins(32, 16, 32, 32)
+        root.setSpacing(16)
 
         rows_layout = QVBoxLayout()
         rows_layout.setSpacing(10)
@@ -77,8 +99,6 @@ class ProtectionCustomizationScreen(QWidget):
         self.intention_input.setObjectName("intentionInput")
         root.addWidget(self.intention_input)
 
-        root.addStretch()
-
         self.toggle_btn = QPushButton("Activate Protection")
         self.toggle_btn.setObjectName("secondaryBtn")
         self.toggle_btn.setCheckable(True)
@@ -89,6 +109,14 @@ class ProtectionCustomizationScreen(QWidget):
         back_btn.setObjectName("linkBtn")
         back_btn.clicked.connect(lambda: self.go_back.emit())
         root.addWidget(back_btn)
+
+        scroll = ElasticScrollArea()
+        scroll.setObjectName("protectionScrollArea")
+        scroll.setWidgetResizable(True)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        scroll.setFrameShape(QFrame.Shape.NoFrame)
+        scroll.setWidget(body)
+        page_root.addWidget(scroll, 1)
 
     def _build_row(self, app_name):
         outer = QFrame()
