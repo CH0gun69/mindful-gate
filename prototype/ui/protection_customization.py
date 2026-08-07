@@ -19,21 +19,23 @@ LEVEL_ANIM_MS = 180
 class ProtectionCustomizationScreen(QWidget):
     """Single combined destination for setting up protection -- merges what
     used to be two separate screens (Setup + Protection Customization) into
-    one: pick which apps to protect, write an intention, set each app's
-    friction level (1/2/3, see core.mock_data.PROTECTION_LEVELS), and flip
-    protection on/off overall.
+    one: pick which apps to protect, write a message, and set each app's
+    friction level (1/2/3, see core.mock_data.PROTECTION_LEVELS). The
+    overall on/off switch lives on Dashboard only (Activate/Deactivate
+    Focus Mode) -- this screen has no master toggle of its own, so every
+    change here applies live/instantly instead of needing a commit action.
 
     One row per app: an icon/name line ending in a "Protect" ToggleSwitch,
     and -- revealed with a smooth expand/collapse only while that app's
     switch is on -- a labeled LevelSlider for its 1/2/3 friction level.
-    Intention text and the overall ON/OFF toggle live once, not per row.
 
     The row list itself never changes (always all of PROTECTABLE_APPS), so
     unlike a dynamic list this doesn't need a rebuild-on-update pattern --
     rows are built once in _build_ui() and just get enabled/disabled or
     re-checked in place."""
 
-    protection_toggled = Signal(bool, str, list)  # enabled, intention, protected apps
+    protected_apps_changed = Signal(list)  # live -- fires on every per-app switch toggle
+    intention_changed = Signal(str)  # live -- fires when the message field loses focus
     level_changed = Signal(str, int)  # app_name, new level
     go_back = Signal()
 
@@ -97,22 +99,13 @@ class ProtectionCustomizationScreen(QWidget):
 
         self.intention_input = QLineEdit(DEFAULT_INTENTION)
         self.intention_input.setObjectName("intentionInput")
+        # Live/instant like everything else on this screen -- no master
+        # toggle here to gate a "commit" action on, so the message just
+        # applies whenever the field loses focus (editingFinished), same
+        # as a per-app switch or level slider applying immediately on
+        # interaction.
+        self.intention_input.editingFinished.connect(self._on_intention_edited)
         root.addWidget(self.intention_input)
-
-        # Master protection on/off -- same ToggleSwitch widget as each
-        # app's own Protect control above, just wired to protection_toggled
-        # instead of level_changed. Its current state is self-evident from
-        # the switch position, so no button text is needed to say it.
-        protection_row = QHBoxLayout()
-        protection_row.setSpacing(10)
-        protection_label = QLabel("Protection")
-        protection_label.setObjectName("sectionLabel")
-        protection_row.addWidget(protection_label)
-        protection_row.addStretch()
-        self.protection_switch = ToggleSwitch()
-        self.protection_switch.toggled.connect(self._on_protection_switch_toggled)
-        protection_row.addWidget(self.protection_switch)
-        root.addLayout(protection_row)
 
         back_btn = QPushButton("Back")
         back_btn.setObjectName("linkBtn")
@@ -221,23 +214,14 @@ class ProtectionCustomizationScreen(QWidget):
         anim.start()
         self._level_anims[app_name] = anim  # keep alive until replaced
 
+        selected = [app for app, sw in self.switches.items() if sw.isChecked()]
+        self.protected_apps_changed.emit(selected)
+
     def _on_level_changed(self, app_name, level):
         self._levels[app_name] = level
         self._level_labels[app_name].setText(f"Level {level}:")
         self.level_changed.emit(app_name, level)
 
-    def _on_protection_switch_toggled(self, enabled):
-        selected = [app for app, sw in self.switches.items() if sw.isChecked()]
+    def _on_intention_edited(self):
         intention = self.intention_input.text().strip() or DEFAULT_INTENTION
-        self.protection_toggled.emit(enabled, intention, selected)
-
-    def set_enabled_state(self, enabled: bool):
-        """Sync the master switch's visual state to MainWindow's real
-        protection_enabled flag, WITHOUT emitting protection_toggled --
-        call this every time the screen is navigated to. Otherwise the
-        switch could visually desync from the real state, and the next tap
-        would flip it the wrong way. Unrelated to the per-app switches
-        above. ToggleSwitch.setChecked() never emits toggled on its own,
-        same reasoning as the per-app switches never spuriously re-emitting
-        during construction."""
-        self.protection_switch.setChecked(enabled)
+        self.intention_changed.emit(intention)

@@ -92,7 +92,8 @@ class MainWindow(QMainWindow):
         self.dashboard.go_to_protection.connect(self._on_open_protection_screen)
         self.dashboard.go_home.connect(lambda: self.stack.setCurrentWidget(self.phone_home))
 
-        self.protection_screen.protection_toggled.connect(self._on_protection_toggled)
+        self.protection_screen.protected_apps_changed.connect(self._on_protected_apps_changed)
+        self.protection_screen.intention_changed.connect(self._on_intention_changed)
         self.protection_screen.go_back.connect(lambda: self.stack.setCurrentWidget(self.dashboard))
         self.protection_screen.level_changed.connect(self._on_level_changed)
 
@@ -102,32 +103,29 @@ class MainWindow(QMainWindow):
         self.fake_app.go_back.connect(lambda: self.stack.setCurrentWidget(self.phone_home))
 
     def _on_open_protection_screen(self):
-        # Sync the toggle's visual state to reality every time this screen
-        # is entered -- otherwise it'd visually desync from
-        # protection_enabled, and the next tap would flip it the wrong way.
-        self.protection_screen.set_enabled_state(self.protection_enabled)
+        # Nothing to sync anymore -- the Set Your Intention screen has no
+        # master on/off control of its own (that's Dashboard's job only),
+        # so there's no visual state on it that could desync.
         self.stack.setCurrentWidget(self.protection_screen)
 
     def _on_focus_toggled(self):
-        # Dashboard's button only ever flips the on/off state -- WHICH
-        # apps/levels/intention stay exactly as last configured (never
-        # touched here), same "protection_enabled is separate from the
-        # configuration" split as _on_protection_toggled below.
+        # Dashboard's button is the ONLY place protection_enabled changes --
+        # WHICH apps/levels/intention stay exactly as last configured
+        # (never touched here), same split as
+        # _on_protected_apps_changed/_on_intention_changed below.
         self.protection_enabled = not self.protection_enabled
         self.dashboard.set_focus_active(self.protection_enabled)
 
-    def _on_protection_toggled(self, enabled, intention, protected_apps):
-        # No navigation here -- this switch lives on the Set Your Intention
-        # screen itself and should behave exactly like Dashboard's own
-        # Activate/Deactivate Focus Mode switch (_on_focus_toggled above):
-        # flip the shared state in place, stay put. Back is the only way
-        # to leave this screen now.
-        self.protection_enabled = enabled
-        self.current_intention = intention
+    def _on_protected_apps_changed(self, protected_apps):
+        # Live -- fires on every per-app Protect switch toggle on the Set
+        # Your Intention screen. Never touches protection_enabled; that's
+        # exclusively Dashboard's Activate/Deactivate switch's job.
         self.protected_apps = set(protected_apps)
         self.phone_home.set_protected_apps(self.protected_apps)
         self.dashboard.set_protected_apps(self.protected_apps)
-        self.dashboard.set_focus_active(enabled)
+
+    def _on_intention_changed(self, intention):
+        self.current_intention = intention
 
     def _on_level_changed(self, app_name, level):
         self.app_protection_levels[app_name] = level
