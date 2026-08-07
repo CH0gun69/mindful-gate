@@ -53,11 +53,8 @@ PROTECTION_LEVELS = {
     3: {"delay": 12, "breathing": True, "reaffirm": True},
 }
 
-# Cycling phrases for the breathing-text label (levels 2/3), shown while
-# Continue Anyway is locked. Deliberately just two phrases -- an in/out
-# cycle, not a countdown or numeric timer (no numbers on screen, per the
-# no-numeric-scores project rule).
-BREATHING_PHRASES = ["breathe in...", "breathe out..."]
+# Full breathe-in+breathe-out cycle duration (ms) for the pulsing circle
+# shown during levels 2/3 (see ui.widgets.breathing_circle.BreathingCircle).
 BREATHING_CYCLE_MS = 2500
 
 DEFAULT_INTENTION = "Only reply to messages"

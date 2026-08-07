@@ -119,11 +119,6 @@ QPushButton#secondaryBtn:disabled {
     color: #6b7076;
     border-color: #2a2e34;
 }
-QLabel#breathingText {
-    color: #9aa1ab;
-    font-size: 14px;
-    font-style: italic;
-}
 QPushButton#reaffirmChip {
     background-color: transparent;
     border: 1px solid #93cfc4;
@@ -135,22 +130,27 @@ QPushButton#reaffirmChip {
 QPushButton#reaffirmChip:hover {
     background-color: rgba(147, 207, 196, 0.1);
 }
-QPushButton#levelPill {
-    background-color: transparent;
-    border: 1px solid #3a3f47;
+QLabel#levelLabel {
+    background: transparent;
     color: #c9cdd3;
-    border-radius: 15px;
     font-size: 13px;
     font-weight: 600;
 }
-QPushButton#levelPill:checked {
-    background-color: #93cfc4;
-    color: #0e1012;
-    border-color: #93cfc4;
+QSlider#levelSlider::groove:horizontal {
+    height: 4px;
+    background: #3a3f47;
+    border-radius: 2px;
 }
-QPushButton#levelPill:disabled {
-    color: #4a4f56;
-    border-color: #24272c;
+QSlider#levelSlider::sub-page:horizontal {
+    background: #93cfc4;
+    border-radius: 2px;
+}
+QSlider#levelSlider::handle:horizontal {
+    width: 16px;
+    height: 16px;
+    margin: -6px 0;
+    background: #eef0f2;
+    border-radius: 8px;
 }
 QLabel#timeSpentNote {
     color: #7d8590;

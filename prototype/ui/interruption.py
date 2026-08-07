@@ -2,10 +2,11 @@ from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton
 from PySide6.QtCore import Qt, Signal, QTimer
 
 from core.mock_data import (
-    glyph_for, icon_path_for, PROTECTION_LEVELS, BREATHING_PHRASES, BREATHING_CYCLE_MS,
+    glyph_for, icon_path_for, PROTECTION_LEVELS, BREATHING_CYCLE_MS,
     time_spent_today_for,
 )
 from ui.widgets.svg_icon import white_svg_pixmap
+from ui.widgets.breathing_circle import BreathingCircle
 
 AVATAR_SIZE = 72
 
@@ -18,21 +19,17 @@ class InterruptionScreen(QWidget):
         super().__init__()
         self.setObjectName("interruptionScreen")
         self._level_cfg = PROTECTION_LEVELS[1]
-        self._breathing_index = 0
         self._seconds_left = 0
 
         # Persistent timers, reused across every set_context() call (this
         # screen instance is shared for every app tap, never recreated) --
-        # all three stopped/restarted fresh each time so no leftover
-        # countdown or breathing-cycle state from a previous app/level can
-        # leak into the next.
+        # both stopped/restarted fresh each time so no leftover countdown
+        # state from a previous app/level can leak into the next. The
+        # breathing phase itself is driven by BreathingCircle's own
+        # internal animation loop, not a QTimer.
         self._unlock_timer = QTimer(self)
         self._unlock_timer.setSingleShot(True)
         self._unlock_timer.timeout.connect(self._on_delay_elapsed)
-
-        self._breathing_timer = QTimer(self)
-        self._breathing_timer.setInterval(BREATHING_CYCLE_MS)
-        self._breathing_timer.timeout.connect(self._cycle_breathing_text)
 
         self._countdown_timer = QTimer(self)
         self._countdown_timer.setInterval(1000)
@@ -89,14 +86,14 @@ class InterruptionScreen(QWidget):
         self.icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
         root.addWidget(self.icon, alignment=Qt.AlignmentFlag.AlignHCenter)
 
-        # Levels 2/3 only: cycling breathe-in/breathe-out text under the
-        # icon while Continue Anyway is locked. Separate label from
-        # self.icon so the app-icon avatar is never overwritten.
-        self.breathing_label = QLabel("")
-        self.breathing_label.setObjectName("breathingText")
-        self.breathing_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.breathing_label.hide()
-        root.addWidget(self.breathing_label)
+        # Levels 2/3 only: a wordless pulsing circle under the icon while
+        # Continue Anyway is locked -- grows/shrinks in a repeating loop
+        # (see BreathingCircle), replacing the old cycling breathe-in/
+        # breathe-out text entirely. Separate widget from self.icon so the
+        # app-icon avatar is never overwritten.
+        self.breathing_circle = BreathingCircle(cycle_ms=BREATHING_CYCLE_MS)
+        self.breathing_circle.hide()
+        root.addWidget(self.breathing_circle, alignment=Qt.AlignmentFlag.AlignHCenter)
 
         root.addStretch(3)
 
@@ -114,11 +111,9 @@ class InterruptionScreen(QWidget):
         # --- full reset first: this screen instance is reused across
         # every trigger, so nothing from a previous app/level may survive.
         self._unlock_timer.stop()
-        self._breathing_timer.stop()
         self._countdown_timer.stop()
-        self._breathing_index = 0
-        self.breathing_label.setText("")
-        self.breathing_label.hide()
+        self.breathing_circle.stop()  # also resets diameter back to minimum
+        self.breathing_circle.hide()
         self.reaffirm_btn.hide()
 
         self.app_label.setText(f"You opened {app_name}.")
@@ -153,15 +148,10 @@ class InterruptionScreen(QWidget):
         self._seconds_left = self._level_cfg["delay"]
         self._update_continue_text()
         if self._level_cfg["breathing"]:
-            self.breathing_label.setText(BREATHING_PHRASES[0])
-            self.breathing_label.show()
-            self._breathing_timer.start()
+            self.breathing_circle.show()
+            self.breathing_circle.start()
         self._unlock_timer.start(self._level_cfg["delay"] * 1000)
         self._countdown_timer.start()
-
-    def _cycle_breathing_text(self):
-        self._breathing_index = (self._breathing_index + 1) % len(BREATHING_PHRASES)
-        self.breathing_label.setText(BREATHING_PHRASES[self._breathing_index])
 
     def _tick_countdown(self):
         self._seconds_left = max(self._seconds_left - 1, 0)
@@ -176,7 +166,7 @@ class InterruptionScreen(QWidget):
             self.continue_btn.setText(f"Continue Anyway ({self._seconds_left}s)")
 
     def _on_delay_elapsed(self):
-        self._breathing_timer.stop()
+        self.breathing_circle.stop()
         self._countdown_timer.stop()
         if self._level_cfg["reaffirm"]:
             # Delay's over but still gated -- drop the stale "(0s)" suffix
@@ -199,5 +189,5 @@ class InterruptionScreen(QWidget):
         firing otherwise, since Qt doesn't pause timers just because their
         owning widget isn't the visible one in a QStackedWidget."""
         self._unlock_timer.stop()
-        self._breathing_timer.stop()
         self._countdown_timer.stop()
+        self.breathing_circle.stop()
