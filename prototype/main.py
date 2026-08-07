@@ -101,7 +101,7 @@ class MainWindow(QMainWindow):
         self.protected_apps = set(protected_apps)
         self.phone_home.set_protected_apps(self.protected_apps)
         self.dashboard.set_protected_apps(self.protected_apps)
-        self.dashboard.set_focus_active(enabled, intention)
+        self.dashboard.set_focus_active(enabled)
         self.stack.setCurrentWidget(self.dashboard)
 
     def _on_level_changed(self, app_name, level):

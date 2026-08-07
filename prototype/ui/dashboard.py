@@ -43,8 +43,12 @@ class DashboardScreen(QWidget):
 
         root.addStretch()
 
+        focus_label = QLabel("Focus Mode")
+        focus_label.setObjectName("sectionLabel")
+        root.addWidget(focus_label)
+
         self.focus_btn = QPushButton("Activate Focus Mode")
-        self.focus_btn.setObjectName("primaryBtn")
+        self.focus_btn.setObjectName("focusBtnIdle")
         self.focus_btn.clicked.connect(lambda: self.go_to_setup.emit())
         root.addWidget(self.focus_btn)
 
@@ -149,12 +153,19 @@ class DashboardScreen(QWidget):
 
         return row
 
-    def set_focus_active(self, active: bool, intention: str = ""):
+    def set_focus_active(self, active: bool):
         self.focus_active = active
         if active:
-            self.focus_btn.setText(f"Focus Mode ON — “{intention}”")
+            self.focus_btn.setText("Deactivate Focus Mode")
+            self.focus_btn.setObjectName("focusBtnActive")
         else:
             self.focus_btn.setText("Activate Focus Mode")
+            self.focus_btn.setObjectName("focusBtnIdle")
+        # objectName swaps don't auto-repaint under Qt style sheets --
+        # unpolish/polish forces the new selector to actually apply (same
+        # idiom used for the Set Your Intention screen's overall toggle).
+        self.focus_btn.style().unpolish(self.focus_btn)
+        self.focus_btn.style().polish(self.focus_btn)
 
     def set_protected_apps(self, protected_apps):
         """Update which apps are currently protected, e.g. after Setup is

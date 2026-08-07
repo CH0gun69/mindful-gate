@@ -72,6 +72,34 @@ QPushButton#primaryBtn {
 QPushButton#primaryBtn:hover {
     background-color: #a7dad1;
 }
+/* Dashboard's Focus Mode button: two explicit states instead of one
+   fixed look -- idle (never activated / just turned off) reads as a
+   neutral, waiting-to-be-clicked gray; active reads as a calm green
+   (not red -- this app's ambient-tint work already established red/
+   alarming styling is off-limits, and green universally reads as "on"
+   without implying a warning). */
+QPushButton#focusBtnIdle {
+    background-color: #3a3f47;
+    color: #eef0f2;
+    border-radius: 10px;
+    padding: 12px;
+    font-weight: 600;
+    font-size: 14px;
+}
+QPushButton#focusBtnIdle:hover {
+    background-color: #454b54;
+}
+QPushButton#focusBtnActive {
+    background-color: #3ebd5e;
+    color: #0e1012;
+    border-radius: 10px;
+    padding: 12px;
+    font-weight: 600;
+    font-size: 14px;
+}
+QPushButton#focusBtnActive:hover {
+    background-color: #55c974;
+}
 QPushButton#secondaryBtn {
     background-color: transparent;
     color: #eef0f2;
