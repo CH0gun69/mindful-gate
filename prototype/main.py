@@ -72,10 +72,12 @@ class MainWindow(QMainWindow):
         self.phone_home.app_tapped.connect(self._on_phone_home_app_tapped)
         self.phone_home.open_dashboard.connect(lambda: self.stack.setCurrentWidget(self.dashboard))
 
-        # Both of Dashboard's nav buttons ("Activate Focus Mode" and "Set
-        # your intention") lead to the same merged screen now that Setup
-        # and Protection Customization are one destination.
-        self.dashboard.go_to_setup.connect(self._on_open_protection_screen)
+        # "Activate/Deactivate Focus Mode" toggles protection_enabled in
+        # place, staying on Dashboard -- it reuses whatever apps/intention/
+        # levels are already configured. "Set your intention" is the
+        # separate action that navigates to the merged screen to change
+        # those.
+        self.dashboard.focus_toggled.connect(self._on_focus_toggled)
         self.dashboard.go_to_protection.connect(self._on_open_protection_screen)
         self.dashboard.go_home.connect(lambda: self.stack.setCurrentWidget(self.phone_home))
 
@@ -94,6 +96,14 @@ class MainWindow(QMainWindow):
         # protection_enabled, and the next tap would flip it the wrong way.
         self.protection_screen.set_enabled_state(self.protection_enabled)
         self.stack.setCurrentWidget(self.protection_screen)
+
+    def _on_focus_toggled(self):
+        # Dashboard's button only ever flips the on/off state -- WHICH
+        # apps/levels/intention stay exactly as last configured (never
+        # touched here), same "protection_enabled is separate from the
+        # configuration" split as _on_protection_toggled below.
+        self.protection_enabled = not self.protection_enabled
+        self.dashboard.set_focus_active(self.protection_enabled)
 
     def _on_protection_toggled(self, enabled, intention, protected_apps):
         self.protection_enabled = enabled

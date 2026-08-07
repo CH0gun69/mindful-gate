@@ -12,7 +12,7 @@ from ui.widgets.usage_ring_chart import UsageRingChart
 
 
 class DashboardScreen(QWidget):
-    go_to_setup = Signal()
+    focus_toggled = Signal()  # user clicked Activate/Deactivate Focus Mode
     go_to_protection = Signal()
     go_home = Signal()
 
@@ -49,7 +49,13 @@ class DashboardScreen(QWidget):
 
         self.focus_btn = QPushButton("Activate Focus Mode")
         self.focus_btn.setObjectName("focusBtnIdle")
-        self.focus_btn.clicked.connect(lambda: self.go_to_setup.emit())
+        # Toggles protection in place -- does NOT navigate anywhere. Now
+        # that the button visually reads as a direct on/off control (gray
+        # idle / green active), sending the user to a whole separate
+        # screen just to flip it would contradict that. Configuring WHICH
+        # apps/levels/intention is still a separate action via "Set your
+        # intention" below.
+        self.focus_btn.clicked.connect(lambda: self.focus_toggled.emit())
         root.addWidget(self.focus_btn)
 
         protection_btn = QPushButton("Set your intention")
