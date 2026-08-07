@@ -115,6 +115,39 @@ QLineEdit#intentionInput {
     padding: 10px;
     font-size: 14px;
 }
+QPushButton#secondaryBtn:disabled {
+    color: #6b7076;
+    border-color: #2a2e34;
+}
+QLabel#breathingText {
+    color: #9aa1ab;
+    font-size: 14px;
+    font-style: italic;
+}
+QPushButton#reaffirmChip {
+    background-color: transparent;
+    border: 1px solid #8fd3c7;
+    color: #8fd3c7;
+    border-radius: 14px;
+    padding: 6px 14px;
+    font-size: 13px;
+}
+QPushButton#reaffirmChip:hover {
+    background-color: rgba(143, 211, 199, 0.1);
+}
+QPushButton#levelPill {
+    background-color: transparent;
+    border: 1px solid #3a3f47;
+    color: #c9cdd3;
+    border-radius: 15px;
+    font-size: 13px;
+    font-weight: 600;
+}
+QPushButton#levelPill:checked {
+    background-color: #8fd3c7;
+    color: #0e1012;
+    border-color: #8fd3c7;
+}
 
 /* ===== Phone Home Screen ===== */
 QWidget#phoneHomeScreen {

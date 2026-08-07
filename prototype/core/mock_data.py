@@ -32,12 +32,33 @@ PROTECTABLE_APPS = ["Instagram", "TikTok", "X (Twitter)", "YouTube", "Facebook",
 # they can't drift out of sync with each other.
 DEFAULT_PROTECTED_APPS = ["Instagram", "TikTok", "X (Twitter)"]
 
-INSIGHTS = {
-    "intentions_kept": 12,
-    "intentions_total": 18,
-    "time_saved_this_week": "3h 20m",
-    "most_interrupted_app": "Instagram",
+# Per-app protection level (1/2/3) before the user has ever visited the
+# Protection Customization screen -- level 1 (mildest) for every
+# protectable app, single source of truth shared by MainWindow's
+# app_protection_levels dict and ProtectionCustomizationScreen's initial
+# row state, so a never-configured app can't render with an undefined level.
+DEFAULT_APP_PROTECTION_LEVELS = {app: 1 for app in PROTECTABLE_APPS}
+
+# Behavior per interruption level, keyed by level number (1/2/3). Single
+# source of truth for InterruptionScreen's timing/UI-gating logic --
+# "delay" is seconds Continue Anyway stays disabled before it can unlock,
+# "breathing" toggles the animated breathe-in/breathe-out text under the
+# icon, "reaffirm" means the delay elapsing does NOT auto-unlock Continue
+# Anyway -- the user must additionally tap the "Still on purpose?" chip.
+# Modeled after the real "one sec" app's breathing + deliberation-message
+# pattern -- calm, escalating friction, never a hard block.
+PROTECTION_LEVELS = {
+    1: {"delay": 3, "breathing": False, "reaffirm": False},
+    2: {"delay": 7, "breathing": True, "reaffirm": False},
+    3: {"delay": 12, "breathing": True, "reaffirm": True},
 }
+
+# Cycling phrases for the breathing-text label (levels 2/3), shown while
+# Continue Anyway is locked. Deliberately just two phrases -- an in/out
+# cycle, not a countdown or numeric timer (no numbers on screen, per the
+# no-numeric-scores project rule).
+BREATHING_PHRASES = ["breathe in...", "breathe out..."]
+BREATHING_CYCLE_MS = 2500
 
 DEFAULT_INTENTION = "Only reply to messages"
 

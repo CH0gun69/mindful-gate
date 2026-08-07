@@ -13,7 +13,7 @@ from ui.widgets.usage_ring_chart import UsageRingChart
 
 class DashboardScreen(QWidget):
     go_to_setup = Signal()
-    go_to_insights = Signal()
+    go_to_protection = Signal()
     go_home = Signal()
 
     def __init__(self, protected_apps=None):
@@ -48,10 +48,10 @@ class DashboardScreen(QWidget):
         self.focus_btn.clicked.connect(lambda: self.go_to_setup.emit())
         root.addWidget(self.focus_btn)
 
-        insights_btn = QPushButton("View Insights")
-        insights_btn.setObjectName("linkBtn")
-        insights_btn.clicked.connect(lambda: self.go_to_insights.emit())
-        root.addWidget(insights_btn)
+        protection_btn = QPushButton("Customize Protection")
+        protection_btn.setObjectName("linkBtn")
+        protection_btn.clicked.connect(lambda: self.go_to_protection.emit())
+        root.addWidget(protection_btn)
 
         home_btn = QPushButton("⌂ Home")
         home_btn.setObjectName("linkBtn")

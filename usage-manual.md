@@ -99,14 +99,14 @@ All content (photos, captions, usernames, contacts) is local hardcoded mock data
 
 - **← (back arrow, top-left)** → returns to the Phone Home screen
 
-### Dashboard, Setup, and Insights
+### Dashboard, Setup, and Protection Customization
 
-These three screens are the original wellbeing-stats flow (screen time, focus mode setup, weekly insights) and still fully work, but as of the Phone Home screen becoming the entry point, **there's currently no button that links from Phone Home into this group** — they're only reachable from each other once you're already on one of them. If you need to view/QA them, use [debug mode](#4-debug-mode) (`--screen dashboard`) or reach them via the legacy path described below.
+These three screens are the original wellbeing-stats flow (screen time, focus mode setup, per-app protection levels) and still fully work, but as of the Phone Home screen becoming the entry point, **there's currently no button that links from Phone Home into this group** — they're only reachable from each other once you're already on one of them. If you need to view/QA them, use [debug mode](#4-debug-mode) (`--screen dashboard`) or reach them via the legacy path described below.
 
 Once you're on the **Dashboard** (e.g. via debug mode):
 
-- **Activate Focus Mode** → **Setup** screen (choose protected apps + write an intention) → **Activate Protection** returns you to the Dashboard with focus mode marked on, or **Back** returns without saving
-- **View Insights** → **Insights** screen (intentions kept, time saved, most-interrupted app); **Back to Dashboard** returns
+- **Activate Focus Mode** → **Setup** screen (choose protected apps + write an intention) → **Activate Protection** is now a real ON/OFF toggle: tapping it again shows **Protection ON** and returns you to the Dashboard with focus mode marked on; tapping it while already on turns protection off (without losing your chosen apps/intention), or **Back** returns without saving
+- **Customize Protection** → **Protection Customization** screen — pick a 1/2/3 protection level per protected app (how much calm friction the Interruption screen adds before "Continue Anyway" unlocks); **Back to Dashboard** returns
 - **⌂ Home** → returns to the Phone Home screen (one-way — there's no button back into Dashboard from Phone Home yet)
 
 ---
@@ -119,7 +119,7 @@ For visual QA, you don't have to click through the whole flow every time — lau
 python main.py --screen <name>
 ```
 
-Valid names: `phone_home`, `dashboard`, `setup`, `interruption`, `insights`, `fake_app`.
+Valid names: `phone_home`, `dashboard`, `setup`, `interruption`, `protection_customization`, `fake_app`.
 
 The screen opens in the same 390×780 window with the same styling as the real app — just without the rest of the navigation wired up.
 
@@ -130,13 +130,15 @@ python main.py --screen phone_home
 python main.py --screen dashboard
 python main.py --screen setup
 python main.py --screen interruption
-python main.py --screen insights
+python main.py --screen protection_customization
 python main.py --screen fake_app
 ```
 
 ### Picking which app populates a screen
 
 `interruption` and `fake_app` need to know which app they're pretending to represent. Use `--app` alongside `--screen` to pick one — it defaults to `"Instagram"` if you leave it out.
+
+`interruption` also takes `--level` (1/2/3) to preview each protection level's escalating behavior — it defaults to `1` if you leave it out, e.g. `python main.py --screen interruption --level 3`.
 
 ```bash
 python main.py --screen interruption --app TikTok
@@ -166,14 +168,15 @@ mindful-gate/
     ├── main.py               ← entry point: MainWindow (real app) + DebugWindow (--screen mode)
     ├── requirements.txt
     ├── core/
-    │   └── mock_data.py       ← all hardcoded demo data: screen time, app list, insights,
-    │                             default intention, and each app's icon/color
+    │   └── mock_data.py       ← all hardcoded demo data: screen time, app list,
+    │                             per-app protection levels, default intention,
+    │                             and each app's icon/color
     ├── ui/
     │   ├── phone_home.py      ← Phone Home screen (the entry point)
     │   ├── dashboard.py       ← Dashboard screen
     │   ├── intention_setup.py ← Setup screen
     │   ├── interruption.py    ← Interruption ("still on purpose?") screen
-    │   ├── insights.py        ← Insights screen
+    │   ├── protection_customization.py ← Protection Customization screen
     │   ├── fake_app_screen.py ← "you opened the app" mock screen — one configurable
     │   │                         widget with 3 body styles (feed/shorts/messages)
     │   ├── styles.qss         ← one stylesheet for the whole app (dark theme, teal accent)

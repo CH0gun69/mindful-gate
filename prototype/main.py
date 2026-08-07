@@ -8,9 +8,9 @@ from ui.phone_home import PhoneHomeScreen
 from ui.dashboard import DashboardScreen
 from ui.intention_setup import IntentionSetupScreen
 from ui.interruption import InterruptionScreen
-from ui.insights import InsightsScreen
+from ui.protection_customization import ProtectionCustomizationScreen
 from ui.fake_app_screen import FakeAppScreen
-from core.mock_data import DEFAULT_INTENTION, DEFAULT_PROTECTED_APPS
+from core.mock_data import DEFAULT_INTENTION, DEFAULT_PROTECTED_APPS, DEFAULT_APP_PROTECTION_LEVELS
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -20,7 +20,7 @@ DEBUG_SCREENS = {
     "dashboard": DashboardScreen,
     "setup": IntentionSetupScreen,
     "interruption": InterruptionScreen,
-    "insights": InsightsScreen,
+    "protection_customization": ProtectionCustomizationScreen,
     "fake_app": FakeAppScreen,
 }
 
@@ -45,17 +45,29 @@ class MainWindow(QMainWindow):
         # to both Phone Home (real tap behavior) and Dashboard (Protected
         # badges) so neither can drift out of sync with Setup.
         self.protected_apps = set(DEFAULT_PROTECTED_APPS)
+        # Whether protection is currently active at all -- separate from
+        # protected_apps (which apps are chosen) so toggling this off and
+        # back on never loses the chosen apps/intention/levels. Defaults
+        # True to match the app's previous always-on behavior.
+        self.protection_enabled = True
+        # Per-app protection level (1/2/3), single source of truth handed
+        # to InterruptionScreen (via _trigger_interruption) and kept in
+        # sync with ProtectionCustomizationScreen's own display.
+        self.app_protection_levels = dict(DEFAULT_APP_PROTECTION_LEVELS)
 
         self.phone_home = PhoneHomeScreen(protected_apps=self.protected_apps)
         self.dashboard = DashboardScreen(protected_apps=self.protected_apps)
         self.setup = IntentionSetupScreen()
         self.interruption = InterruptionScreen()
-        self.insights = InsightsScreen()
+        self.protection_screen = ProtectionCustomizationScreen()
         self.fake_app = FakeAppScreen()
+
+        self.protection_screen.set_protected_apps(self.protected_apps)
+        self.protection_screen.set_levels(self.app_protection_levels)
 
         for screen in (
             self.phone_home, self.dashboard, self.setup,
-            self.interruption, self.insights, self.fake_app,
+            self.interruption, self.protection_screen, self.fake_app,
         ):
             self.stack.addWidget(screen)
 
@@ -66,43 +78,60 @@ class MainWindow(QMainWindow):
         self.phone_home.app_tapped.connect(self._on_phone_home_app_tapped)
         self.phone_home.open_dashboard.connect(lambda: self.stack.setCurrentWidget(self.dashboard))
 
-        self.dashboard.go_to_setup.connect(lambda: self.stack.setCurrentWidget(self.setup))
-        self.dashboard.go_to_insights.connect(lambda: self.stack.setCurrentWidget(self.insights))
+        self.dashboard.go_to_setup.connect(self._on_go_to_setup)
+        self.dashboard.go_to_protection.connect(lambda: self.stack.setCurrentWidget(self.protection_screen))
         self.dashboard.go_home.connect(lambda: self.stack.setCurrentWidget(self.phone_home))
 
         self.setup.go_back.connect(lambda: self.stack.setCurrentWidget(self.dashboard))
-        self.setup.activated.connect(self._on_intention_activated)
+        self.setup.protection_toggled.connect(self._on_protection_toggled)
 
         self.interruption.continue_clicked.connect(self._on_interruption_continue)
         self.interruption.go_back_clicked.connect(self._on_interruption_go_back)
 
-        self.insights.go_back.connect(lambda: self.stack.setCurrentWidget(self.dashboard))
+        self.protection_screen.go_back.connect(lambda: self.stack.setCurrentWidget(self.dashboard))
+        self.protection_screen.level_changed.connect(self._on_level_changed)
 
         self.fake_app.go_back.connect(lambda: self.stack.setCurrentWidget(self.phone_home))
 
-    def _on_intention_activated(self, intention, protected_apps):
+    def _on_go_to_setup(self):
+        # Sync the toggle's visual state to reality every time Setup is
+        # entered -- otherwise it'd visually reset to OFF on each re-visit
+        # even while protection is still active, and the next tap would
+        # incorrectly flip it off.
+        self.setup.set_enabled_state(self.protection_enabled)
+        self.stack.setCurrentWidget(self.setup)
+
+    def _on_protection_toggled(self, enabled, intention, protected_apps):
+        self.protection_enabled = enabled
         self.current_intention = intention
         self.protected_apps = set(protected_apps)
         self.phone_home.set_protected_apps(self.protected_apps)
         self.dashboard.set_protected_apps(self.protected_apps)
-        self.dashboard.set_focus_active(True, intention)
+        self.protection_screen.set_protected_apps(self.protected_apps)
+        self.dashboard.set_focus_active(enabled, intention)
         self.stack.setCurrentWidget(self.dashboard)
 
+    def _on_level_changed(self, app_name, level):
+        self.app_protection_levels[app_name] = level
+
     def _on_phone_home_app_tapped(self, app_name, protected):
-        if protected:
+        if protected and self.protection_enabled:
             self._trigger_interruption(app_name)
         else:
             self._open_fake_app(app_name)
 
     def _trigger_interruption(self, app_name):
         self.current_app = app_name
-        self.interruption.set_context(app_name, self.current_intention)
+        level = self.app_protection_levels.get(app_name, 1)
+        self.interruption.set_context(app_name, self.current_intention, level)
         self.stack.setCurrentWidget(self.interruption)
 
     def _on_interruption_continue(self):
+        self.interruption.stop_timers()
         self._open_fake_app(self.current_app)
 
     def _on_interruption_go_back(self):
+        self.interruption.stop_timers()
         self.stack.setCurrentWidget(self.phone_home)
 
     def _open_fake_app(self, app_name):
@@ -115,7 +144,7 @@ class DebugWindow(QMainWindow):
     size/stylesheet as the real app, but skips the rest of the stack and
     all navigation wiring."""
 
-    def __init__(self, screen_name, app_name):
+    def __init__(self, screen_name, app_name, level=1):
         super().__init__()
         self.setWindowTitle(f"mindful-gate — DEBUG: {screen_name}")
         self.setFixedSize(390, 780)  # same reasoning as MainWindow
@@ -125,9 +154,12 @@ class DebugWindow(QMainWindow):
         # Screens that need data to render meaningfully get populated with
         # sensible mock values so they don't show up empty/broken.
         if screen_name == "interruption":
-            screen.set_context(app_name, DEFAULT_INTENTION)
+            screen.set_context(app_name, DEFAULT_INTENTION, level=level)
         elif screen_name == "fake_app":
             screen.set_app(app_name)
+        elif screen_name == "protection_customization":
+            screen.set_protected_apps(DEFAULT_PROTECTED_APPS)
+            screen.set_levels(DEFAULT_APP_PROTECTION_LEVELS)
 
         self.setCentralWidget(screen)
 
@@ -147,6 +179,14 @@ def parse_args():
         help="App name to populate the interruption/fake_app screens with "
              "when used together with --screen (default: Instagram).",
     )
+    parser.add_argument(
+        "--level",
+        type=int,
+        default=1,
+        choices=[1, 2, 3],
+        help="Protection level to populate the interruption screen with in "
+             "--screen debug mode (default: 1).",
+    )
     return parser.parse_args()
 
 
@@ -165,7 +205,7 @@ def main():
         app.setStyleSheet(f.read())
 
     if args.screen:
-        window = DebugWindow(args.screen, args.app)
+        window = DebugWindow(args.screen, args.app, args.level)
     else:
         window = MainWindow()
 

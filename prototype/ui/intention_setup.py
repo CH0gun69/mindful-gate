@@ -7,7 +7,7 @@ from core.mock_data import PROTECTABLE_APPS, DEFAULT_INTENTION, DEFAULT_PROTECTE
 
 
 class IntentionSetupScreen(QWidget):
-    activated = Signal(str, list)  # intention text, protected apps
+    protection_toggled = Signal(bool, str, list)  # enabled, intention text, protected apps
     go_back = Signal()
 
     def __init__(self):
@@ -49,17 +49,38 @@ class IntentionSetupScreen(QWidget):
 
         root.addStretch()
 
-        activate_btn = QPushButton("Activate Protection")
-        activate_btn.setObjectName("primaryBtn")
-        activate_btn.clicked.connect(self._on_activate)
-        root.addWidget(activate_btn)
+        self.toggle_btn = QPushButton("Activate Protection")
+        self.toggle_btn.setObjectName("secondaryBtn")
+        self.toggle_btn.setCheckable(True)
+        self.toggle_btn.clicked.connect(self._on_toggle_clicked)
+        root.addWidget(self.toggle_btn)
 
         back_btn = QPushButton("Back")
         back_btn.setObjectName("linkBtn")
         back_btn.clicked.connect(lambda: self.go_back.emit())
         root.addWidget(back_btn)
 
-    def _on_activate(self):
+    def _on_toggle_clicked(self):
+        enabled = self.toggle_btn.isChecked()
+        self._apply_toggle_style(enabled)
         selected = [app for app, cb in self.checkboxes.items() if cb.isChecked()]
         intention = self.intention_input.text().strip() or DEFAULT_INTENTION
-        self.activated.emit(intention, selected)
+        self.protection_toggled.emit(enabled, intention, selected)
+
+    def set_enabled_state(self, enabled: bool):
+        """Sync the toggle's visual state to MainWindow's real
+        protection_enabled flag, WITHOUT emitting protection_toggled --
+        call this every time the screen is navigated to. Otherwise the
+        toggle would visually reset to OFF on every re-visit even while
+        protection is still active, and the next tap would incorrectly
+        flip it off."""
+        self.toggle_btn.setChecked(enabled)
+        self._apply_toggle_style(enabled)
+
+    def _apply_toggle_style(self, enabled):
+        self.toggle_btn.setText("Protection ON" if enabled else "Activate Protection")
+        # objectName swaps don't auto-repaint under Qt style sheets --
+        # unpolish/polish forces the new selector to actually apply.
+        self.toggle_btn.setObjectName("primaryBtn" if enabled else "secondaryBtn")
+        self.toggle_btn.style().unpolish(self.toggle_btn)
+        self.toggle_btn.style().polish(self.toggle_btn)

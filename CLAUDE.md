@@ -23,7 +23,7 @@ python main.py
 
 # debug mode: jump directly to any single screen for visual QA
 python main.py --screen <name>
-# valid names: phone_home, dashboard, setup, interruption, insights, fake_app
+# valid names: phone_home, dashboard, setup, interruption, protection_customization, fake_app
 python main.py --screen interruption --app TikTok   # --app populates interruption/fake_app
 ```
 

@@ -27,7 +27,7 @@ Goal: port the agreed flow into a lightweight SwiftUI app under 25 MB, offline, 
 - [ ] Dashboard (hardcoded screen time + stats)
 - [ ] Focus/Intention Setup (local @State, no persistence needed unless trivial)
 - [ ] Interruption screen (core demo moment — polish this the most)
-- [ ] Insights screen (optional, only if time allows)
+- [x] Protection Customization screen (per-app protection levels, replaces the old Insights screen)
 - [ ] Runs on iPhone/iPad/Mac via SwiftUI multiplatform
 - [ ] Confirm build size < 25 MB
 
