@@ -40,6 +40,29 @@ There is no test suite, linter, or build step in this repo — it's a single-win
 - Always commit and push after completing a task — never leave finished work sitting uncommitted between sessions. Confirm the push succeeded and report the commit hash.
 - Before editing a file, check whether requested fixes are already present — some fixes have been re-requested multiple times after being lost to uncommitted work.
 
+## Recent session checkpoint (animated switch/slider + breathing circle)
+
+As of commit `6d2669c` (pushed to `main`), the protection-levels UI was redesigned:
+`ui/widgets/toggle_switch.py` (`ToggleSwitch`, animated on/off), `ui/widgets/level_slider.py`
+(`LevelSlider`, click-anywhere-jumps-to-nearest-of-3), and `ui/widgets/breathing_circle.py`
+(`BreathingCircle`, replaces the old cycling breathe-in/out text on the Interruption
+screen). `ui/protection_customization.py` and `ui/interruption.py` were updated to use
+these. **This was fully built AND verified** (not just built) on a real X display before
+this commit — the 4-point plan checklist below all passed:
+1. Switch slides, not snaps — confirmed numerically (`thumbX` interpolated 22.0 → 13.6 →
+   2.0 across the animation, not an instant jump).
+2. OFF app hides its level control entirely, ON app shows a clearly-labeled level —
+   confirmed via screenshots + `maximumHeight` reads on the collapsible container.
+3. Breathing circle genuinely oscillates (not a one-shot grow or sawtooth) — confirmed
+   numerically (diameter: 36 → ~64 at half-cycle → ~36 at full cycle, symmetric ~50 at
+   both the 1/4 and 3/4 marks).
+4. Full `MainWindow` click-through re-confirmed: switch-driven app selection and
+   slider-driven levels still commit through `protection_toggled`/`level_changed`
+   correctly, with the same persistence-across-toggle and level-gating behavior as before.
+
+No further verification needed on this specific feature — if picking this up again, this
+note is just provenance, not a to-do.
+
 ## Architecture notes
 
 - prototype/core/ = business/mock data logic (mirrors ClipPortal's core/)
