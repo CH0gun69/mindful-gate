@@ -96,10 +96,6 @@ QLabel#interruptQuestion {
     font-size: 30px;
     font-weight: 700;
 }
-QLabel#interruptIcon {
-    font-size: 64px;
-    background: transparent;
-}
 QLabel#intentionQuote {
     font-size: 16px;
     font-style: italic;
