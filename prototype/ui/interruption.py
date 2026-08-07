@@ -3,6 +3,7 @@ from PySide6.QtCore import Qt, Signal, QTimer
 
 from core.mock_data import (
     glyph_for, icon_path_for, PROTECTION_LEVELS, BREATHING_PHRASES, BREATHING_CYCLE_MS,
+    time_spent_today_for,
 )
 from ui.widgets.svg_icon import white_svg_pixmap
 
@@ -18,12 +19,13 @@ class InterruptionScreen(QWidget):
         self.setObjectName("interruptionScreen")
         self._level_cfg = PROTECTION_LEVELS[1]
         self._breathing_index = 0
+        self._seconds_left = 0
 
         # Persistent timers, reused across every set_context() call (this
         # screen instance is shared for every app tap, never recreated) --
-        # both stopped/restarted fresh each time so no leftover countdown
-        # or breathing-cycle state from a previous app/level can leak into
-        # the next.
+        # all three stopped/restarted fresh each time so no leftover
+        # countdown or breathing-cycle state from a previous app/level can
+        # leak into the next.
         self._unlock_timer = QTimer(self)
         self._unlock_timer.setSingleShot(True)
         self._unlock_timer.timeout.connect(self._on_delay_elapsed)
@@ -31,6 +33,10 @@ class InterruptionScreen(QWidget):
         self._breathing_timer = QTimer(self)
         self._breathing_timer.setInterval(BREATHING_CYCLE_MS)
         self._breathing_timer.timeout.connect(self._cycle_breathing_text)
+
+        self._countdown_timer = QTimer(self)
+        self._countdown_timer.setInterval(1000)
+        self._countdown_timer.timeout.connect(self._tick_countdown)
 
         self._build_ui()
 
@@ -55,6 +61,16 @@ class InterruptionScreen(QWidget):
         self.intention_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.intention_label.setWordWrap(True)
         root.addWidget(self.intention_label)
+
+        # Small, muted "time spent today" nudge -- sourced from
+        # core.mock_data.TOP_APPS via time_spent_today_for(), hidden
+        # gracefully if the app has no mock usage entry. Understated on
+        # purpose: a text line, not a popup or blocking dialog.
+        self.time_spent_label = QLabel("")
+        self.time_spent_label.setObjectName("timeSpentNote")
+        self.time_spent_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.time_spent_label.hide()
+        root.addWidget(self.time_spent_label)
 
         # Level 3 only: a deliberate reaffirm tap, anchored right under the
         # intention quote it's reaffirming. Hidden until the breathing
@@ -99,6 +115,7 @@ class InterruptionScreen(QWidget):
         # every trigger, so nothing from a previous app/level may survive.
         self._unlock_timer.stop()
         self._breathing_timer.stop()
+        self._countdown_timer.stop()
         self._breathing_index = 0
         self.breathing_label.setText("")
         self.breathing_label.hide()
@@ -106,6 +123,13 @@ class InterruptionScreen(QWidget):
 
         self.app_label.setText(f"You opened {app_name}.")
         self.intention_label.setText(f"“{intention}”")
+
+        time_spent = time_spent_today_for(app_name)
+        if time_spent:
+            self.time_spent_label.setText(f"You've spent {time_spent} on {app_name} today.")
+            self.time_spent_label.show()
+        else:
+            self.time_spent_label.hide()
 
         glyph, color = glyph_for(app_name)
         self.icon.setStyleSheet(
@@ -126,26 +150,48 @@ class InterruptionScreen(QWidget):
         # immediately clickable at every level, always an escape hatch.
         self._level_cfg = PROTECTION_LEVELS.get(level, PROTECTION_LEVELS[1])
         self.continue_btn.setEnabled(False)
+        self._seconds_left = self._level_cfg["delay"]
+        self._update_continue_text()
         if self._level_cfg["breathing"]:
             self.breathing_label.setText(BREATHING_PHRASES[0])
             self.breathing_label.show()
             self._breathing_timer.start()
         self._unlock_timer.start(self._level_cfg["delay"] * 1000)
+        self._countdown_timer.start()
 
     def _cycle_breathing_text(self):
         self._breathing_index = (self._breathing_index + 1) % len(BREATHING_PHRASES)
         self.breathing_label.setText(BREATHING_PHRASES[self._breathing_index])
 
+    def _tick_countdown(self):
+        self._seconds_left = max(self._seconds_left - 1, 0)
+        self._update_continue_text()
+        if self._seconds_left <= 0:
+            self._countdown_timer.stop()
+
+    def _update_continue_text(self):
+        if self.continue_btn.isEnabled():
+            self.continue_btn.setText("Continue Anyway")
+        else:
+            self.continue_btn.setText(f"Continue Anyway ({self._seconds_left}s)")
+
     def _on_delay_elapsed(self):
         self._breathing_timer.stop()
+        self._countdown_timer.stop()
         if self._level_cfg["reaffirm"]:
+            # Delay's over but still gated -- drop the stale "(0s)" suffix
+            # rather than leave a countdown showing next to a button that
+            # isn't actually about to unlock on its own.
+            self.continue_btn.setText("Continue Anyway")
             self.reaffirm_btn.show()
         else:
             self.continue_btn.setEnabled(True)
+            self._update_continue_text()
 
     def _on_reaffirm_clicked(self):
         self.reaffirm_btn.hide()
         self.continue_btn.setEnabled(True)
+        self._update_continue_text()
 
     def stop_timers(self):
         """Defensive stop for when the screen is navigated away from
@@ -154,3 +200,4 @@ class InterruptionScreen(QWidget):
         owning widget isn't the visible one in a QStackedWidget."""
         self._unlock_timer.stop()
         self._breathing_timer.stop()
+        self._countdown_timer.stop()

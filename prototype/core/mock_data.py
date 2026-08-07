@@ -67,13 +67,13 @@ DEFAULT_INTENTION = "Only reply to messages"
 # phone home screen and the fake app screen so apps not listed here just fall
 # back to an initial-letter avatar instead of needing to stay in sync.
 APP_GLYPHS = {
-    "Instagram": ("📸", "#e1306c"),
+    "Instagram": ("📸", "#d53c70"),
     "TikTok": ("🎵", "#111214"),
-    "X (Twitter)": ("𝕏", "#1d2026"),
-    "YouTube": ("▶", "#ff0000"),
-    "Messages": ("💬", "#34c759"),
-    "Facebook": ("📘", "#1877f2"),
-    "Reddit": ("👽", "#ff4500"),
+    "X (Twitter)": ("𝕏", "#1e2025"),
+    "YouTube": ("▶", "#ee1111"),
+    "Messages": ("💬", "#3ebd5e"),
+    "Facebook": ("📘", "#2679e4"),
+    "Reddit": ("👽", "#ee4d11"),
 }
 
 
@@ -122,6 +122,18 @@ def _parse_minutes(time_str):
     return hours * 60 + minutes
 
 
+def time_spent_today_for(name):
+    """This app's already-formatted "Xh Ym" time entry from TOP_APPS, or
+    None if it has no mock usage entry -- e.g. a protectable app the user
+    checked that isn't in the mock usage data. Callers (InterruptionScreen,
+    FakeAppScreen) should omit their "time spent today" nudge gracefully in
+    that case rather than show "0m" or crash."""
+    for app in TOP_APPS:
+        if app["name"] == name:
+            return app["time"]
+    return None
+
+
 def usage_breakdown():
     """(name, minutes, time_str, color) tuples derived from TOP_APPS, for
     Dashboard's screen-time ring chart + legend -- deliberately not a
@@ -139,8 +151,8 @@ def usage_breakdown():
 # overall tone). 240 min (4h) chosen because SCREEN_TIME_TODAY (4h 32m)
 # already crosses it, so both states are demo-visible without faking data.
 AMBIENT_THRESHOLD_MINUTES = 240
-AMBIENT_COLOR_NORMAL = "#8fd3c7"  # existing teal accent, unchanged look below the threshold
-AMBIENT_COLOR_HIGH = "#e0a96d"  # soft amber, not red -- ambient, not alarming
+AMBIENT_COLOR_NORMAL = "#93cfc4"  # softened teal accent, unchanged look below the threshold
+AMBIENT_COLOR_HIGH = "#d9a974"  # soft amber, not red -- ambient, not alarming
 
 
 def is_high_usage():

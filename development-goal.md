@@ -25,9 +25,8 @@ Goal: get the whole team seeing and agreeing on the flow before touching Swift.
 Goal: port the agreed flow into a lightweight SwiftUI app under 25 MB, offline, mock data only.
 
 - [ ] Dashboard (hardcoded screen time + stats)
-- [ ] Focus/Intention Setup (local @State, no persistence needed unless trivial)
+- [x] Set Your Intention screen (local @State, no persistence needed unless trivial) — protected-app selection, per-app protection levels, and the on/off toggle merged into one screen; replaces the old separate Setup + Insights screens
 - [ ] Interruption screen (core demo moment — polish this the most)
-- [x] Protection Customization screen (per-app protection levels, replaces the old Insights screen)
 - [ ] Runs on iPhone/iPad/Mac via SwiftUI multiplatform
 - [ ] Confirm build size < 25 MB
 

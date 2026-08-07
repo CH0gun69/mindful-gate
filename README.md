@@ -37,9 +37,8 @@ To match the competition requirements, the repository focuses on demonstrating t
 ## Screens
 
 1. **Dashboard** — Screen time, quick statistics, top apps, Focus/Intention Mode toggle.
-2. **Focus / Intention Setup** — Select protected apps, create an intention, and activate the experience.
+2. **Set Your Intention** — Select protected apps, set each one's 1–3 protection level (how much calm friction — delay, breathing prompt, reaffirm tap — the Interruption screen adds before letting the user continue), write an intention, and toggle protection on/off.
 3. **Interruption Screen** *(main demo)* — Simulates opening Instagram and asks whether the user is still following their intention.
-4. **Protection Customization** — Set a 1–3 protection level per protected app, controlling how much calm friction (delay, breathing prompt, reaffirm tap) the Interruption screen adds before letting the user continue.
 
 ## Development Workflow
 

@@ -5,7 +5,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, Signal, QTimer
 
 from core.mock_data import (
-    glyph_for, icon_path_for, style_for,
+    glyph_for, icon_path_for, style_for, time_spent_today_for,
     mock_image_path, mock_image_index_for, feed_actions_for,
     MOCK_FEED_POSTS, MOCK_SHORTS_CAPTION, MOCK_CONTACTS, MOCK_CHAT,
 )
@@ -65,9 +65,23 @@ class FakeAppScreen(QWidget):
         self.avatar.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.avatar)
 
+        # Title + a small, muted "time spent today" subtitle stacked
+        # together so both sit next to the avatar without disturbing the
+        # header's overall single-row layout.
+        title_block = QVBoxLayout()
+        title_block.setContentsMargins(0, 0, 0, 0)
+        title_block.setSpacing(0)
+
         self.title = QLabel()
         self.title.setObjectName("fakeAppTitle")
-        layout.addWidget(self.title)
+        title_block.addWidget(self.title)
+
+        self.subtitle = QLabel()
+        self.subtitle.setObjectName("fakeAppSubtitle")
+        self.subtitle.hide()
+        title_block.addWidget(self.subtitle)
+
+        layout.addLayout(title_block)
         layout.addStretch()
 
         return header
@@ -94,6 +108,16 @@ class FakeAppScreen(QWidget):
     def set_app(self, name):
         glyph, color = glyph_for(name)
         self.title.setText(name)
+
+        # Small, muted "time spent today" nudge -- same data source/
+        # graceful-omit behavior as InterruptionScreen's own nudge (see
+        # core.mock_data.time_spent_today_for).
+        time_spent = time_spent_today_for(name)
+        if time_spent:
+            self.subtitle.setText(f"{time_spent} today")
+            self.subtitle.show()
+        else:
+            self.subtitle.hide()
 
         self.avatar.setStyleSheet(f"background-color: {color}; border-radius: 10px;")
         icon_path = icon_path_for(name)

@@ -10,7 +10,7 @@ QLabel#screenTitle {
 QLabel#bigScreenTime {
     font-size: 44px;
     font-weight: 700;
-    color: #8fd3c7;
+    color: #93cfc4;
 }
 QLabel#caption {
     color: #9aa1ab;
@@ -53,7 +53,7 @@ QLabel#appName {
 }
 QLabel#badge {
     background: transparent;
-    color: #8fd3c7;
+    color: #93cfc4;
     font-size: 11px;
     margin-left: 8px;
 }
@@ -62,7 +62,7 @@ QLabel#appTime {
     color: #9aa1ab;
 }
 QPushButton#primaryBtn {
-    background-color: #8fd3c7;
+    background-color: #93cfc4;
     color: #0e1012;
     border-radius: 10px;
     padding: 12px;
@@ -70,7 +70,7 @@ QPushButton#primaryBtn {
     font-size: 14px;
 }
 QPushButton#primaryBtn:hover {
-    background-color: #a3ded3;
+    background-color: #a7dad1;
 }
 QPushButton#secondaryBtn {
     background-color: transparent;
@@ -99,7 +99,7 @@ QLabel#interruptQuestion {
 QLabel#intentionQuote {
     font-size: 16px;
     font-style: italic;
-    color: #8fd3c7;
+    color: #93cfc4;
     padding: 16px;
     background-color: #1d2026;
     border-radius: 10px;
@@ -126,14 +126,14 @@ QLabel#breathingText {
 }
 QPushButton#reaffirmChip {
     background-color: transparent;
-    border: 1px solid #8fd3c7;
-    color: #8fd3c7;
+    border: 1px solid #93cfc4;
+    color: #93cfc4;
     border-radius: 14px;
     padding: 6px 14px;
     font-size: 13px;
 }
 QPushButton#reaffirmChip:hover {
-    background-color: rgba(143, 211, 199, 0.1);
+    background-color: rgba(147, 207, 196, 0.1);
 }
 QPushButton#levelPill {
     background-color: transparent;
@@ -144,9 +144,23 @@ QPushButton#levelPill {
     font-weight: 600;
 }
 QPushButton#levelPill:checked {
-    background-color: #8fd3c7;
+    background-color: #93cfc4;
     color: #0e1012;
-    border-color: #8fd3c7;
+    border-color: #93cfc4;
+}
+QPushButton#levelPill:disabled {
+    color: #4a4f56;
+    border-color: #24272c;
+}
+QLabel#timeSpentNote {
+    color: #7d8590;
+    font-size: 12px;
+    background: transparent;
+}
+QLabel#fakeAppSubtitle {
+    background-color: transparent;
+    color: #9aa1ab;
+    font-size: 11px;
 }
 
 /* ===== Phone Home Screen ===== */
@@ -177,7 +191,7 @@ QPushButton#appIcon {
     padding: 0px;
 }
 QPushButton#appIcon:pressed {
-    background-color: rgba(143, 211, 199, 0.15);
+    background-color: rgba(147, 207, 196, 0.15);
     border-radius: 12px;
 }
 QLabel#appIconLabel {
@@ -199,7 +213,7 @@ QPushButton#screenTimeWidget:pressed {
 }
 QLabel#screenTimeValue {
     background: transparent;
-    color: #8fd3c7;
+    color: #93cfc4;
     font-size: 22px;
     font-weight: 700;
 }
@@ -252,7 +266,7 @@ QPushButton#fakeAppBackBtn {
     padding: 4px 8px;
 }
 QPushButton#fakeAppBackBtn:pressed {
-    color: #8fd3c7;
+    color: #93cfc4;
 }
 QLabel#fakeAppTitle {
     background-color: transparent;
@@ -446,7 +460,7 @@ QLabel#messagesContactPreview {
     font-size: 11px;
 }
 QLabel#chatBubbleMe {
-    background-color: #8fd3c7;
+    background-color: #93cfc4;
     color: #0e1012;
     border-radius: 14px;
     padding: 8px 12px;

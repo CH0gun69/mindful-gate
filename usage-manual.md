@@ -99,14 +99,13 @@ All content (photos, captions, usernames, contacts) is local hardcoded mock data
 
 - **← (back arrow, top-left)** → returns to the Phone Home screen
 
-### Dashboard, Setup, and Protection Customization
+### Dashboard and Set Your Intention
 
-These three screens are the original wellbeing-stats flow (screen time, focus mode setup, per-app protection levels) and still fully work, but as of the Phone Home screen becoming the entry point, **there's currently no button that links from Phone Home into this group** — they're only reachable from each other once you're already on one of them. If you need to view/QA them, use [debug mode](#4-debug-mode) (`--screen dashboard`) or reach them via the legacy path described below.
+These two screens are the original wellbeing-stats flow (screen time, protected-app selection, per-app protection levels, intention) and still fully work, but as of the Phone Home screen becoming the entry point, **there's currently no button that links from Phone Home into this group** — they're only reachable from each other once you're already on one of them. If you need to view/QA them, use [debug mode](#4-debug-mode) (`--screen dashboard`) or reach them via the legacy path described below.
 
 Once you're on the **Dashboard** (e.g. via debug mode):
 
-- **Activate Focus Mode** → **Setup** screen (choose protected apps + write an intention) → **Activate Protection** is now a real ON/OFF toggle: tapping it again shows **Protection ON** and returns you to the Dashboard with focus mode marked on; tapping it while already on turns protection off (without losing your chosen apps/intention), or **Back** returns without saving
-- **Customize Protection** → **Protection Customization** screen — pick a 1/2/3 protection level per protected app (how much calm friction the Interruption screen adds before "Continue Anyway" unlocks); **Back to Dashboard** returns
+- **Activate Focus Mode** or **Set your intention** → both open the same **Set Your Intention** screen — one row per app (checkbox to protect it + a 1/2/3 protection level picker, enabled once checked), an intention text field, and an **Activate Protection** button that's a real ON/OFF toggle: tapping it shows **Protection ON** and returns you to the Dashboard with focus mode marked on; tapping it again turns protection off (without losing your chosen apps/intention/levels); **Back** returns without saving
 - **⌂ Home** → returns to the Phone Home screen (one-way — there's no button back into Dashboard from Phone Home yet)
 
 ---
@@ -119,16 +118,15 @@ For visual QA, you don't have to click through the whole flow every time — lau
 python main.py --screen <name>
 ```
 
-Valid names: `phone_home`, `dashboard`, `setup`, `interruption`, `protection_customization`, `fake_app`.
+Valid names: `phone_home`, `dashboard`, `interruption`, `protection_customization`, `fake_app`.
 
 The screen opens in the same 390×780 window with the same styling as the real app — just without the rest of the navigation wired up.
 
-### Example commands for all 6 screens
+### Example commands for all 5 screens
 
 ```bash
 python main.py --screen phone_home
 python main.py --screen dashboard
-python main.py --screen setup
 python main.py --screen interruption
 python main.py --screen protection_customization
 python main.py --screen fake_app
@@ -145,7 +143,7 @@ python main.py --screen interruption --app TikTok
 python main.py --screen fake_app --app Reddit
 ```
 
-`--app` is ignored for the other four screens (they don't need it).
+`--app` is ignored for the other three screens (they don't need it).
 
 ### Going back to normal
 
@@ -174,9 +172,9 @@ mindful-gate/
     ├── ui/
     │   ├── phone_home.py      ← Phone Home screen (the entry point)
     │   ├── dashboard.py       ← Dashboard screen
-    │   ├── intention_setup.py ← Setup screen
     │   ├── interruption.py    ← Interruption ("still on purpose?") screen
-    │   ├── protection_customization.py ← Protection Customization screen
+    │   ├── protection_customization.py ← Set Your Intention screen (protected
+    │   │                         apps + per-app levels + intention + toggle)
     │   ├── fake_app_screen.py ← "you opened the app" mock screen — one configurable
     │   │                         widget with 3 body styles (feed/shorts/messages)
     │   ├── styles.qss         ← one stylesheet for the whole app (dark theme, teal accent)

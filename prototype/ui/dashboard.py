@@ -48,7 +48,7 @@ class DashboardScreen(QWidget):
         self.focus_btn.clicked.connect(lambda: self.go_to_setup.emit())
         root.addWidget(self.focus_btn)
 
-        protection_btn = QPushButton("Customize Protection")
+        protection_btn = QPushButton("Set your intention")
         protection_btn.setObjectName("linkBtn")
         protection_btn.clicked.connect(lambda: self.go_to_protection.emit())
         root.addWidget(protection_btn)
@@ -93,10 +93,15 @@ class DashboardScreen(QWidget):
         top_row.addLayout(text_block)
         top_row.addStretch()
 
+        # The ambient tint stays on the screen-time text only (above) --
+        # the ring keeps its own fixed, neutral border regardless of
+        # ambient state (that border exists purely so a dark segment like
+        # X (Twitter)'s isn't invisible against the card background, see
+        # UsageRingChart's own docstring; tinting it teal/amber read as
+        # visually off and conflated two different signals).
         self._breakdown = usage_breakdown()
         self.ring_chart = UsageRingChart(
             [(name, minutes, color) for name, minutes, _, color in self._breakdown],
-            border_color=tint,
         )
         top_row.addWidget(self.ring_chart)
         card_layout.addLayout(top_row)
