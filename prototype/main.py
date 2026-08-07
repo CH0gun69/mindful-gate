@@ -59,6 +59,17 @@ class MainWindow(QMainWindow):
         self.protection_screen = ProtectionCustomizationScreen()
         self.fake_app = FakeAppScreen()
 
+        # DashboardScreen's own __init__ always seeds focus_active=False --
+        # it has no way to know protection_enabled defaults True, so
+        # without this the button visually read "Activate Focus Mode"
+        # (looks off) while protection was actually already on underneath,
+        # and the first click would silently flip it off with no visible
+        # change (confirmed bug). Same seed-from-real-state idiom already
+        # used for the Set Your Intention screen's toggle, just done once
+        # at construction here since Dashboard is visible immediately
+        # rather than only synced lazily on navigation.
+        self.dashboard.set_focus_active(self.protection_enabled)
+
         for screen in (
             self.phone_home, self.dashboard,
             self.interruption, self.protection_screen, self.fake_app,
