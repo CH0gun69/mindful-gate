@@ -91,7 +91,7 @@ class ProtectionCustomizationScreen(QWidget):
             rows_layout.addWidget(self._build_row(app))
         root.addLayout(rows_layout)
 
-        intent_label = QLabel("Your intention")
+        intent_label = QLabel("Your message")
         intent_label.setObjectName("sectionLabel")
         root.addWidget(intent_label)
 
@@ -99,11 +99,20 @@ class ProtectionCustomizationScreen(QWidget):
         self.intention_input.setObjectName("intentionInput")
         root.addWidget(self.intention_input)
 
-        self.toggle_btn = QPushButton("Activate Protection")
-        self.toggle_btn.setObjectName("secondaryBtn")
-        self.toggle_btn.setCheckable(True)
-        self.toggle_btn.clicked.connect(self._on_toggle_clicked)
-        root.addWidget(self.toggle_btn)
+        # Master protection on/off -- same ToggleSwitch widget as each
+        # app's own Protect control above, just wired to protection_toggled
+        # instead of level_changed. Its current state is self-evident from
+        # the switch position, so no button text is needed to say it.
+        protection_row = QHBoxLayout()
+        protection_row.setSpacing(10)
+        protection_label = QLabel("Protection")
+        protection_label.setObjectName("sectionLabel")
+        protection_row.addWidget(protection_label)
+        protection_row.addStretch()
+        self.protection_switch = ToggleSwitch()
+        self.protection_switch.toggled.connect(self._on_protection_switch_toggled)
+        protection_row.addWidget(self.protection_switch)
+        root.addLayout(protection_row)
 
         back_btn = QPushButton("Back")
         back_btn.setObjectName("linkBtn")
@@ -217,27 +226,18 @@ class ProtectionCustomizationScreen(QWidget):
         self._level_labels[app_name].setText(f"Level {level}:")
         self.level_changed.emit(app_name, level)
 
-    def _on_toggle_clicked(self):
-        enabled = self.toggle_btn.isChecked()
-        self._apply_toggle_style(enabled)
+    def _on_protection_switch_toggled(self, enabled):
         selected = [app for app, sw in self.switches.items() if sw.isChecked()]
         intention = self.intention_input.text().strip() or DEFAULT_INTENTION
         self.protection_toggled.emit(enabled, intention, selected)
 
     def set_enabled_state(self, enabled: bool):
-        """Sync the overall toggle's visual state to MainWindow's real
+        """Sync the master switch's visual state to MainWindow's real
         protection_enabled flag, WITHOUT emitting protection_toggled --
         call this every time the screen is navigated to. Otherwise the
-        toggle could visually desync from the real state, and the next tap
+        switch could visually desync from the real state, and the next tap
         would flip it the wrong way. Unrelated to the per-app switches
-        above."""
-        self.toggle_btn.setChecked(enabled)
-        self._apply_toggle_style(enabled)
-
-    def _apply_toggle_style(self, enabled):
-        self.toggle_btn.setText("Protection ON" if enabled else "Activate Protection")
-        # objectName swaps don't auto-repaint under Qt style sheets --
-        # unpolish/polish forces the new selector to actually apply.
-        self.toggle_btn.setObjectName("primaryBtn" if enabled else "secondaryBtn")
-        self.toggle_btn.style().unpolish(self.toggle_btn)
-        self.toggle_btn.style().polish(self.toggle_btn)
+        above. ToggleSwitch.setChecked() never emits toggled on its own,
+        same reasoning as the per-app switches never spuriously re-emitting
+        during construction."""
+        self.protection_switch.setChecked(enabled)

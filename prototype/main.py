@@ -117,13 +117,17 @@ class MainWindow(QMainWindow):
         self.dashboard.set_focus_active(self.protection_enabled)
 
     def _on_protection_toggled(self, enabled, intention, protected_apps):
+        # No navigation here -- this switch lives on the Set Your Intention
+        # screen itself and should behave exactly like Dashboard's own
+        # Activate/Deactivate Focus Mode switch (_on_focus_toggled above):
+        # flip the shared state in place, stay put. Back is the only way
+        # to leave this screen now.
         self.protection_enabled = enabled
         self.current_intention = intention
         self.protected_apps = set(protected_apps)
         self.phone_home.set_protected_apps(self.protected_apps)
         self.dashboard.set_protected_apps(self.protected_apps)
         self.dashboard.set_focus_active(enabled)
-        self.stack.setCurrentWidget(self.dashboard)
 
     def _on_level_changed(self, app_name, level):
         self.app_protection_levels[app_name] = level
