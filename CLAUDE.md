@@ -63,42 +63,45 @@ this commit — the 4-point plan checklist below all passed:
 No further verification needed on this specific feature — if picking this up again, this
 note is just provenance, not a to-do.
 
-## Web demo (docs/index.html) — brought to parity 2026-08-07 ✅
+## Web demo (docs/index.html) — brought to parity 2026-08-08 ✅
 
 `docs/index.html` is a self-contained HTML/JS/CSS mirror of `prototype/`, deployed via
 GitHub Pages at `https://ch0gun69.github.io/mindful-gate/` (source: `main` branch, `/docs`
-path). It had drifted stale across this whole session (last synced before any of this
-session's Python work landed) — that gap is now closed as of the commit that added this
-note. All 6 originally-documented gaps plus everything that landed afterward were ported:
+path). Two ports landed this session (2026-08-07's note below is now superseded by this
+one — kept only for history):
 
-- Interruption screen's icon is now the same masked-SVG brand icon (`avatarInnerHTML()`)
-  used everywhere else, not a static emoji.
-- Full per-app protection levels (1/2/3): `PROTECTION_LEVELS` JS object mirrors
-  `core.mock_data.PROTECTION_LEVELS` exactly, drives a live countdown on Continue Anyway,
-  a CSS-animated breathing circle (`@keyframes breathe`, resting transform = min diameter
-  so it freezes rather than snapping when the delay elapses on level 3), and a reaffirm
-  chip for level 3.
-- "Time spent today" nudge on both Interruption and Fake App, sourced from the existing
-  `TOP_APPS` array, gracefully omitted when absent.
-- Setup + Insights merged into one "Set Your Intention" screen: `#screen-insights`
-  deleted entirely, per-app rows use a CSS checkbox-driven toggle switch (not a checkbox)
-  + a native `<input type="range">` (jumps to click position natively, no custom hit-test
-  JS needed) revealed only while that app's switch is on. No master toggle on this screen
-  at all — Dashboard's Focus Mode button (`toggleFocusMode()`) is the only place
-  `PROTECTION_ENABLED` changes, seeded correctly on page load (`applyFocusButtonState()`)
-  so it never starts visually desynced from the true default-on state.
-  `PROTECTED`/`APP_LEVELS`/`currentIntention` are all live-updated straight from the
-  per-app switches/sliders/message field, no commit button.
-- Ring chart stroke is a fixed neutral `#3a3f47`, no longer ambient-tinted.
-  `AMBIENT_COLOR_NORMAL`/`HIGH` and every `APP_GLYPHS` entry updated to the current
-  twice-desaturated Python values.
+**First pass (2026-08-07)**: real brand icon on Interruption, full per-app protection
+levels (countdown/breathing circle/reaffirm), time-spent nudges, Setup+Insights merged
+into "Set Your Intention", ring stroke de-tinted, palette updated.
 
-Verified via a local preview (`.claude/launch.json`'s `web-demo` config,
-`python3 -m http.server --directory docs`) clicking through the full flow: Phone Home →
-Instagram at level 1 and level 3 (countdown, breathing circle, reaffirm unlock all
-confirmed via direct JS state reads, not just visual) → Fake App's time-spent subtitle →
-Dashboard's ring stroke/palette → Set Your Intention's switches/sliders → Focus Mode
-toggle gating apps on/off end-to-end in both directions. Zero console errors throughout.
+**Second pass (2026-08-08, this note)**: ported the Shuffle/Light-Dark/TH-EN referee
+controls plus the Bug 1/Bug 2 fixes, none of which existed in the first pass:
+
+- **Shuffle**: `shuffleTopApps()`/`SHUFFLED_TIMES` mirror `core.mock_data`'s
+  shuffle mechanism exactly (`TOP_APPS` itself never mutated, `timeFor()` overlay,
+  `currentScreenTimeToday()` keeps the big total consistent with what's shuffled). Wired
+  into `buildRingChart()`/`buildUsageLegend()`/`timeSpentTodayFor()`/`isHighUsage()` so
+  the ring, legend, ambient tint, and Interruption/Fake App nudges all update together.
+- **Light/Dark**: a `#phone.light` class flips the shared CSS custom properties
+  (`--bg`/`--bg2`/`--border`/`--text`/`--muted`/`--dim`/`--thumb`), plus explicit
+  overrides for the handful of hardcoded (non-var) colors, mirroring
+  `ui/styles_light.qss` selector-for-selector — including the Bug 1 fix: feed/messages
+  content gets its own light "generic real app" look (white cards, near-black text),
+  never mindful-gate's own teal/amber; only "shorts" stays unchanged regardless of theme
+  (translucent dark overlay on a photo, same as real video apps).
+- **TH/EN**: a `STRINGS`/`t()`/`fmt()` trio mirrors `core/strings.py` exactly, covering
+  the same 4-screen scope as the Bug 2 fix — Phone Home, Dashboard, Interruption
+  (including the live countdown text), and Set Your Intention (including per-app
+  "Level N:" labels). Fake App and the three referee controls themselves stay
+  English-only, same reasoning as the Python side.
+
+Verified via a local preview (`.claude/launch.json`'s `web-demo` config): shuffle
+consistency confirmed numerically (shuffled legend times summed to the exact new total),
+theme/language toggles confirmed via direct JS state reads (`#phone.light` class,
+translated text on all 4 in-scope screens, app brand names/user-typed text correctly
+untranslated), level-3 breathing/reaffirm confirmed mid-flow, and a real per-app-switch
+interaction (not a raw variable mutation) confirmed the "Level N:" label re-renders
+correctly live. Zero console errors throughout.
 
 This remains a manual, one-time port (per the original KISS decision, no sync tooling) --
 whoever picks up the next round of Python-side changes will need to repeat this pass by

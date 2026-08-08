@@ -8,6 +8,20 @@
 :root{
   --bg:#14161a; --bg2:#1d2026; --border:#22262c; --border2:#3a3f47;
   --text:#eef0f2; --muted:#9aa1ab; --dim:#c9cdd3; --accent:#93cfc4; --accent-hover:#a7dad1;
+  --thumb:#eef0f2;
+}
+/* Light theme -- toggled via #phone.light (see toggleTheme()). CSS custom
+   properties cascade to every descendant automatically, so most of the
+   app just re-colors for free; a handful of hardcoded (non-var) colors
+   below need their own explicit #phone.light override, mirroring
+   ui/styles_light.qss exactly. Brand colors (--accent/--accent-hover)
+   are NOT overridden -- kept identical for brand consistency, same as
+   the Python side. --thumb flips to a dark value here (matches the
+   Python LevelSlider handle's own light-mode switch to #3a3f47, for the
+   same reason: a near-white thumb would blend into a light track). */
+#phone.light{
+  --bg:#f4f5f7; --bg2:#ffffff; --border:#e2e4e8; --border2:#d7dade;
+  --text:#14161a; --muted:#6b7280; --dim:#3a3f47; --thumb:#3a3f47;
 }
 *{box-sizing:border-box;}
 html,body{
@@ -65,6 +79,18 @@ html,body{
   justify-content:space-between; cursor:pointer;
 }
 .screen-time-widget:active{ background:#23272f; }
+#phone.light .screen-time-widget:active{ background:#e5e7ea; }
+
+/* Shuffle / Light-Dark / TH-EN referee controls, directly below the
+   screen-time widget -- same card color as that widget, just compact
+   (mirrors QPushButton#miniControlBtn in styles.qss). */
+.mini-controls{ display:flex; gap:8px; padding:0 20px; margin-top:8px; }
+.mini-btn{
+  flex:1; background:var(--bg2); border:none; border-radius:12px;
+  padding:10px 4px; font-size:12px; color:var(--dim); cursor:pointer;
+}
+.mini-btn:active{ background:#23272f; }
+#phone.light .mini-btn:active{ background:#e5e7ea; }
 .st-left .val{ color:var(--accent); font-size:22px; font-weight:700; }
 .st-left .cap{ color:var(--muted); font-size:12px; }
 .st-divider{ width:1px; height:32px; background:var(--border2); margin:0 16px; }
@@ -133,6 +159,12 @@ html,body{
   padding:12px; font-weight:600; font-size:14px; cursor:pointer; margin-top:8px;
 }
 .btn-focus-idle:hover{ background:#454b54; }
+/* NOT relying on var(--border2) here -- it coincidentally equals the dark
+   idle bg (#3a3f47) but diverges from the light idle bg (#e2e4e8 vs
+   border2's #d7dade), so light mode needs its own explicit background,
+   not just the inherited var. */
+#phone.light .btn-focus-idle{ background:#e2e4e8; color:#14161a; }
+#phone.light .btn-focus-idle:hover{ background:#d7dade; }
 .btn-focus-active{
   width:100%; background:#4caf65; color:#0e1012; border:none; border-radius:10px;
   padding:12px; font-weight:600; font-size:14px; cursor:pointer; margin-top:8px;
@@ -166,7 +198,7 @@ html,body{
   transition:background .175s ease; cursor:pointer;
 }
 .switch .thumb{
-  position:absolute; top:2px; left:2px; width:20px; height:20px; background:#eef0f2;
+  position:absolute; top:2px; left:2px; width:20px; height:20px; background:var(--thumb);
   border-radius:50%; transition:transform .175s ease;
 }
 .switch input:checked + .track{ background:var(--accent); }
@@ -187,10 +219,10 @@ html,body{
 }
 .level-slider::-webkit-slider-thumb{
   -webkit-appearance:none; width:16px; height:16px; border-radius:50%;
-  background:#eef0f2; cursor:pointer;
+  background:var(--thumb); cursor:pointer;
 }
 .level-slider::-moz-range-thumb{
-  width:16px; height:16px; border-radius:50%; background:#eef0f2; border:none; cursor:pointer;
+  width:16px; height:16px; border-radius:50%; background:var(--thumb); border:none; cursor:pointer;
 }
 .level-slider:disabled::-webkit-slider-thumb{ background:#6b7076; cursor:default; }
 
@@ -204,6 +236,7 @@ html,body{
 .interrupt-question{ font-size:28px; font-weight:700; margin:0; }
 .intention-quote{ font-size:16px; font-style:italic; color:var(--accent); padding:16px; background:var(--bg2); border-radius:10px; width:100%; }
 .time-spent-note{ color:#7d8590; font-size:12px; }
+#phone.light .time-spent-note{ color:#6b7280; }
 .reaffirm-chip{
   display:none; background:transparent; border:1px solid var(--accent); color:var(--accent);
   border-radius:14px; padding:6px 14px; font-size:13px; cursor:pointer;
@@ -228,6 +261,7 @@ html,body{
 
 .interrupt-actions{ width:100%; margin-top:8px; }
 .btn-secondary:disabled{ color:#6b7076; border-color:#2a2e34; cursor:default; }
+#phone.light .btn-secondary:disabled{ color:#9199a3; border-color:#e2e4e8; }
 
 .fake-subtitle{ font-size:11px; color:var(--muted); margin-top:1px; }
 
@@ -250,16 +284,25 @@ html,body{
 
 /* feed style: Instagram / Facebook / X (Twitter) / Reddit -- leans neutral/
    realistic rather than this app's own teal design system on purpose, same
-   reasoning as the Python version: meant to read as "a real app". */
+   reasoning as the Python version: meant to read as "a real app". DOES
+   follow the Light/Dark toggle though (via the #phone.light overrides
+   below) -- using generic "real app" light colors (white cards, near-
+   black text), never mindful-gate's own teal/amber, same as
+   ui/styles_light.qss's feed section. Only "shorts" (further down) stays
+   unchanged regardless of theme. */
 .post-card{ background:#1c1c1e; border-radius:10px; overflow:hidden; }
+#phone.light .post-card{ background:#ffffff; border:1px solid #e2e2e4; }
 .post-header{ display:flex; align-items:center; gap:8px; padding:10px 10px 8px; }
 .post-avatar{
   width:28px; height:28px; border-radius:14px; display:flex; align-items:center;
   justify-content:center; color:#fff; font-weight:600; font-size:12px; flex-shrink:0;
 }
 .post-username{ color:#f2f2f2; font-weight:600; font-size:13px; }
+#phone.light .post-username{ color:#1c1c1e; }
 .post-photo{ height:160px; background-size:cover; background-position:center; background-color:#0d0d0d; }
+#phone.light .post-photo{ background-color:#e8e8e8; }
 .post-caption{ color:#cfcfcf; font-size:12px; padding:8px 10px 10px; }
+#phone.light .post-caption{ color:#3c3c3c; }
 
 /* Instagram/X action row: icon-only, evenly spaced */
 .actions-icons{ display:flex; align-items:center; justify-content:space-around; padding:4px 10px 8px; }
@@ -274,15 +317,20 @@ html,body{
   width:34px; height:34px; border-radius:50%;
   display:flex; align-items:center; justify-content:center;
 }
+#phone.light .action-btn{ color:#1c1c1e; }
 .action-btn.small{ color:#a8a8a8; font-size:15px; width:28px; height:28px; }
+#phone.light .action-btn.small{ color:#5a5a5a; }
 
 /* Facebook action row: full-width labeled buttons + thin dividers */
 .actions-labeled{ display:flex; border-top:1px solid #2a2a2c; }
+#phone.light .actions-labeled{ border-top-color:#e2e2e4; }
 .action-btn.labeled{
   flex:1; width:auto; height:auto; border-radius:8px;
   padding:8px 0; color:#b8b8b8; font-size:12px; font-weight:600;
 }
+#phone.light .action-btn.labeled{ color:#4a4a4a; }
 .action-divider{ width:1px; background:#2a2a2c; margin:6px 0; }
+#phone.light .action-divider{ background:#e2e2e4; }
 
 /* Reddit: vertical vote cluster on the left, not a bottom row */
 .reddit-card{ display:flex; }
@@ -290,10 +338,14 @@ html,body{
   background:#161617; border-top-left-radius:10px; border-bottom-left-radius:10px;
   display:flex; flex-direction:column; align-items:center; gap:2px; padding:10px 8px;
 }
+#phone.light .vote-cluster{ background:#f2f2f3; }
 .vote-btn{ background:none; border:none; cursor:pointer; color:#818384; font-size:13px; padding:2px; transition:color .15s ease; }
+#phone.light .vote-btn{ color:#6b6b6b; }
 .vote-count{ color:#d7dadc; font-size:11px; font-weight:700; }
+#phone.light .vote-count{ color:#1c1c1e; }
 .post-content{ flex:1; min-width:0; }
 .comment-count{ color:#818384; font-size:11px; padding:0 10px 8px; }
+#phone.light .comment-count{ color:#6b6b6b; }
 
 /* shorts style: TikTok / YouTube */
 .shorts-wrap{ position:relative; flex:1; background-size:cover; background-position:center; background-color:#000; }
@@ -304,13 +356,21 @@ html,body{
 .shorts-icon{ color:#fff; font-size:22px; text-align:center; }
 .shorts-icon .count{ display:block; color:#d8d8d8; font-size:10px; font-weight:600; margin-top:2px; }
 
-/* messages style */
+/* messages style -- follows Light/Dark same as feed above. chat-bubble.me
+   keeps the same teal fill in both themes unchanged (self-contained, dark
+   text on top, unaffected by page background) -- not "mindful-gate's
+   palette leaking in", just the existing choice carried over as-is, same
+   reasoning as ui/styles_light.qss. */
 .messages-wrap{ flex:1; min-height:0; display:flex; }
 .messages-sidebar{ width:128px; flex-shrink:0; background:#17181a; border-right:1px solid #26282c; padding:10px 6px; overflow-y:auto; }
+#phone.light .messages-sidebar{ background:#f7f7f8; border-right-color:#e2e2e4; }
 .contact-row{ border-radius:8px; padding:6px 8px; margin-bottom:4px; }
 .contact-row.active{ background:#23272f; }
+#phone.light .contact-row.active{ background:#e8e9eb; }
 .contact-name{ color:#eef0f2; font-size:12px; font-weight:600; }
+#phone.light .contact-name{ color:#1c1c1e; }
 .contact-preview{ color:#8a8f98; font-size:11px; margin-top:2px; }
+#phone.light .contact-preview{ color:#6b6f76; }
 .chat-inner{ gap:8px; }
 .chat-row{ display:flex; }
 .chat-row.me{ justify-content:flex-end; }
@@ -318,6 +378,7 @@ html,body{
 .chat-bubble{ max-width:170px; border-radius:14px; padding:8px 12px; font-size:13px; }
 .chat-bubble.me{ background:var(--accent); color:#0e1012; }
 .chat-bubble.them{ background:#2a2d33; color:#eef0f2; }
+#phone.light .chat-bubble.them{ background:#e5e6e8; color:#1c1c1e; }
 
 ::-webkit-scrollbar{ width:6px; height:6px; }
 ::-webkit-scrollbar-thumb{ background:#3a3f47; border-radius:3px; }
@@ -334,10 +395,20 @@ html,body{
     <div class="home-scroll">
       <div class="app-grid" id="appGrid"></div>
       <button class="screen-time-widget" onclick="go('dashboard')">
-        <div class="st-left"><div class="val">4h 32m</div><div class="cap">Screen time today</div></div>
+        <div class="st-left"><div class="val" id="phoneScreenTimeValue">4h 32m</div><div class="cap" id="phoneScreenTimeCaption">Screen time today</div></div>
         <div class="st-divider"></div>
-        <div class="st-right"><div class="val">87</div><div class="cap">Unlocks</div></div>
+        <div class="st-right"><div class="val">87</div><div class="cap" id="phoneUnlocksCaption">Unlocks</div></div>
       </button>
+      <!-- Referee/demo utility controls, session-only (never persisted) --
+           mirrors PhoneHomeScreen._build_controls_row() exactly: Shuffle
+           (randomize mock usage data live), Light/Dark (swap theme),
+           TH/EN (retranslate Phone Home/Dashboard/Interruption/Set Your
+           Intention -- Fake App stays English-only by design). -->
+      <div class="mini-controls">
+        <button class="mini-btn" id="shuffleBtn" onclick="onShuffleClicked()">🔀 Shuffle</button>
+        <button class="mini-btn" id="themeBtn" onclick="toggleTheme()">☀️ Light</button>
+        <button class="mini-btn" id="langBtn" onclick="toggleLanguage()">TH</button>
+      </div>
     </div>
     <div class="dock" id="dock"></div>
   </div>
@@ -346,15 +417,15 @@ html,body{
   <div class="screen" id="screen-interruption">
     <div class="status-bar"><span class="time">9:41</span><span class="icons">●●● 5G 100%</span></div>
     <div class="interrupt-body">
-      <p class="interrupt-title">You opened <span id="interruptAppName">Instagram</span>.</p>
-      <p class="interrupt-question">Still on purpose?</p>
+      <p class="interrupt-title" id="interruptTitle">You opened Instagram.</p>
+      <p class="interrupt-question" id="interruptQuestion">Still on purpose?</p>
       <div class="intention-quote" id="interruptIntention">"Only reply to messages"</div>
       <div class="time-spent-note" id="interruptTimeSpent"></div>
       <button class="reaffirm-chip" id="reaffirmChip" onclick="onReaffirmClick()">Still on purpose?</button>
       <div class="interrupt-avatar" id="interruptAvatar"></div>
       <div class="breathing-circle" id="breathingCircle"></div>
       <div class="interrupt-actions">
-        <button class="btn-primary" onclick="clearInterruptTimers(); go('phone_home')">Go Back</button>
+        <button class="btn-primary" id="interruptGoBackBtn" onclick="clearInterruptTimers(); go('phone_home')">Go Back</button>
         <button class="btn-secondary" id="interruptContinueBtn" disabled>Continue Anyway</button>
       </div>
     </div>
@@ -376,25 +447,25 @@ html,body{
   <!-- ===== Dashboard ===== -->
   <div class="screen" id="screen-dashboard">
     <div class="body-pad">
-      <button class="back-btn" style="padding-left:0" onclick="go('phone_home')">⌂ Home</button>
-      <h1 class="screen-title">Dashboard</h1>
+      <button class="back-btn" id="dashboardHomeBtn" style="padding-left:0" onclick="go('phone_home')">⌂ Home</button>
+      <h1 class="screen-title" id="dashboardTitle">Dashboard</h1>
       <div class="screen-time-card">
         <div class="st-top">
           <div>
             <div class="big-time" id="bigTimeValue">4h 32m</div>
-            <div class="caption">Screen time today</div>
+            <div class="caption" id="dashScreenTimeCaption">Screen time today</div>
           </div>
           <svg id="ringChart" viewBox="0 0 112 112" width="112" height="112"></svg>
         </div>
         <div id="usageLegend" class="usage-legend"></div>
       </div>
       <div class="stat-row">
-        <div class="stat-card"><div class="val">87</div><div class="lab">Unlocks</div></div>
-        <div class="stat-card"><div class="val">143</div><div class="lab">Notifications</div></div>
+        <div class="stat-card"><div class="val">87</div><div class="lab" id="unlocksLabel">Unlocks</div></div>
+        <div class="stat-card"><div class="val">143</div><div class="lab" id="notificationsLabel">Notifications</div></div>
       </div>
-      <div class="section-label">Focus Mode</div>
+      <div class="section-label" id="focusModeLabel">Focus Mode</div>
       <button class="btn-focus-idle" id="focusBtn" onclick="toggleFocusMode()">Activate Focus Mode</button>
-      <button class="btn-link" onclick="go('setup')">Set your intention</button>
+      <button class="btn-link" id="setIntentionLink" onclick="go('setup')">Set your intention</button>
     </div>
   </div>
 
@@ -402,12 +473,12 @@ html,body{
        Insights was removed entirely on the Python side, not merged) ===== -->
   <div class="screen" id="screen-setup">
     <div class="body-pad">
-      <h1 class="screen-title">Set Your Intention</h1>
-      <p class="caption" style="margin-bottom:16px;">Choose which apps to protect, how firmly each should ask you to pause, and why you're using them.</p>
+      <h1 class="screen-title" id="setIntentionTitle">Set Your Intention</h1>
+      <p class="caption" id="setIntentionSubtitle" style="margin-bottom:16px;">Choose which apps to protect, how firmly each should ask you to pause, and why you're using them.</p>
       <div id="intentionRows"></div>
-      <div class="section-label">Your message</div>
+      <div class="section-label" id="yourMessageLabel">Your message</div>
       <input class="intention-input" id="intentionInput" value="Only reply to messages" onchange="onIntentionEdited()">
-      <button class="btn-secondary" onclick="go('dashboard')" style="margin-top:16px;">Back</button>
+      <button class="btn-secondary" id="setIntentionBackBtn" onclick="go('dashboard')" style="margin-top:16px;">Back</button>
     </div>
   </div>
 
@@ -475,11 +546,57 @@ const PROTECTABLE_APPS = ["Instagram","TikTok","X (Twitter)","YouTube","Facebook
 let currentIntention = "Only reply to messages";
 const DEFAULT_INTENTION = "Only reply to messages";
 
+// Shuffle -- purely cosmetic, in-memory-only (mirrors
+// core.mock_data.shuffle_top_apps()). TOP_APPS itself is NEVER mutated --
+// SHUFFLED_TIMES is a separate overlay, so a page reload always resets
+// back to the real values, same guarantee the Python side gives via a
+// fresh process. Lets a referee see the ring chart/dashboard update live
+// instead of always showing identical static numbers.
+let SHUFFLED_TIMES = null;  // null = use TOP_APPS as-is; else {name: "Xh Ym"}
+const SHUFFLE_RANGE_MINUTES = [5, 180];  // 5min-3h per app
+
+function formatMinutes(totalMinutes){
+  // Inverse of parseMinutes() -- mirrors core.mock_data._format_minutes().
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  if(hours && minutes) return `${hours}h ${String(minutes).padStart(2, '0')}m`;
+  if(hours) return `${hours}h`;
+  return `${minutes}m`;
+}
+
+function timeFor(app){
+  // This TOP_APPS entry's current time string -- the live shuffled
+  // override if a shuffle is active, else its real value. Mirrors
+  // core.mock_data._time_for().
+  if(SHUFFLED_TIMES) return SHUFFLED_TIMES[app.name] || app.time;
+  return app.time;
+}
+
+function shuffleTopApps(){
+  SHUFFLED_TIMES = {};
+  TOP_APPS.forEach(app => {
+    const span = SHUFFLE_RANGE_MINUTES[1] - SHUFFLE_RANGE_MINUTES[0];
+    const mins = SHUFFLE_RANGE_MINUTES[0] + Math.floor(Math.random() * (span + 1));
+    SHUFFLED_TIMES[app.name] = formatMinutes(mins);
+  });
+}
+
+function currentScreenTimeToday(){
+  // The big screen-time total shown on Phone Home/Dashboard -- mirrors
+  // core.mock_data.current_screen_time_today(): SCREEN_TIME_TODAY
+  // normally, or the live sum of shuffled per-app times when a shuffle is
+  // active, so the displayed total never contradicts what's shuffled
+  // underneath it.
+  if(!SHUFFLED_TIMES) return SCREEN_TIME_TODAY;
+  const total = TOP_APPS.reduce((sum, app) => sum + parseMinutes(timeFor(app)), 0);
+  return formatMinutes(total);
+}
+
 function timeSpentTodayFor(name){
   // Mirrors core.mock_data.time_spent_today_for() -- None/falsy when the
   // app has no mock usage entry, so callers can omit the nudge gracefully.
   const app = TOP_APPS.find(a => a.name === name);
-  return app ? app.time : null;
+  return app ? timeFor(app) : null;
 }
 
 // Per-app protection level (1/2/3) and the on/off state -- mirrors
@@ -515,8 +632,90 @@ const SCREEN_TIME_TODAY = "4h 32m";
 const AMBIENT_THRESHOLD_MINUTES = 240;
 const AMBIENT_COLOR_NORMAL = "#93cfc4";  // softened teal accent, unchanged look below the threshold
 const AMBIENT_COLOR_HIGH = "#d9a974";    // soft amber, not red -- ambient, not alarming
-function isHighUsage(){ return parseMinutes(SCREEN_TIME_TODAY) >= AMBIENT_THRESHOLD_MINUTES; }
+function isHighUsage(){
+  // Reads the current (possibly shuffled) total, not the raw constant,
+  // so the ambient tint stays consistent with whatever total is actually
+  // displayed after a shuffle -- mirrors core.mock_data.is_high_usage().
+  return parseMinutes(currentScreenTimeToday()) >= AMBIENT_THRESHOLD_MINUTES;
+}
 function usageColor(isHigh){ return isHigh ? AMBIENT_COLOR_HIGH : AMBIENT_COLOR_NORMAL; }
+
+// ===== i18n -- mirrors core/strings.py exactly. Phone Home, Dashboard,
+// Interruption, and Set Your Intention retranslate on toggle; Fake App is
+// deliberately excluded (its feed captions/usernames/chat messages/shorts
+// captions are mocked-up real-app content, not mindful-gate's own UI
+// copy, same reasoning as its light/dark styling above). Real app brand
+// names and any user-typed text (the message field) are never
+// translated anywhere, on any screen. =====
+const STRINGS = {
+  en: {
+    dashboard_title: "Dashboard",
+    screen_time_today: "Screen time today",
+    unlocks: "Unlocks",
+    notifications: "Notifications",
+    protected: "Protected",
+    focus_mode: "Focus Mode",
+    activate_focus_mode: "Activate Focus Mode",
+    deactivate_focus_mode: "Deactivate Focus Mode",
+    set_your_intention: "Set your intention",
+    home: "⌂ Home",
+    shuffle: "Shuffle",
+    light: "Light",
+    dark: "Dark",
+    you_opened: "You opened {app}.",
+    still_on_purpose: "Still on purpose?",
+    go_back: "Go Back",
+    continue_anyway: "Continue Anyway",
+    continue_anyway_countdown: "Continue Anyway ({seconds}s)",
+    time_spent_nudge: "You've spent {time} on {app} today.",
+    set_your_intention_title: "Set Your Intention",
+    protection_subtitle: "Choose which apps to protect, how firmly each should ask you to pause, and why you're using them.",
+    your_message: "Your message",
+    level_label: "Level {level}:",
+    back: "Back",
+  },
+  th: {
+    dashboard_title: "แดชบอร์ด",
+    screen_time_today: "เวลาหน้าจอวันนี้",
+    unlocks: "การปลดล็อก",
+    notifications: "การแจ้งเตือน",
+    protected: "ป้องกันอยู่",
+    focus_mode: "โหมดโฟกัส",
+    activate_focus_mode: "เปิดใช้งานโฟกัส",
+    deactivate_focus_mode: "ปิดโหมดโฟกัส",
+    set_your_intention: "ตั้งเป้าหมายของคุณ",
+    home: "⌂ หน้าหลัก",
+    shuffle: "สุ่ม",
+    light: "สว่าง",
+    dark: "มืด",
+    you_opened: "คุณเปิด {app}",
+    still_on_purpose: "ยังตั้งใจอยู่ไหม?",
+    go_back: "ย้อนกลับ",
+    continue_anyway: "ดำเนินการต่อ",
+    continue_anyway_countdown: "ดำเนินการต่อ ({seconds} วิ)",
+    time_spent_nudge: "วันนี้คุณใช้เวลา {time} กับ {app}",
+    set_your_intention_title: "ตั้งเป้าหมายของคุณ",
+    protection_subtitle: "เลือกแอปที่ต้องการป้องกัน กำหนดความเข้มงวดในการหยุดพัก และเหตุผลที่คุณใช้งานแอปเหล่านี้",
+    your_message: "ข้อความของคุณ",
+    level_label: "ระดับ {level}:",
+    back: "ย้อนกลับ",
+  },
+};
+let currentLanguage = "en";
+
+function t(key, lang){
+  const resolvedLang = lang || currentLanguage;
+  const table = STRINGS[resolvedLang] || STRINGS.en;
+  return table[key] !== undefined ? table[key] : (STRINGS.en[key] !== undefined ? STRINGS.en[key] : key);
+}
+// Simple single-occurrence {placeholder} substitution -- JS has no native
+// named-format like Python's str.format(), but our templates only ever
+// use each placeholder once, so a plain replace() is enough.
+function fmt(template, values){
+  let out = template;
+  Object.keys(values).forEach(k => { out = out.replace(`{${k}}`, values[k]); });
+  return out;
+}
 
 // ===== Fake App mock content (mirrors core/mock_data.py) =====
 const MOCK_IMAGES = [
@@ -636,9 +835,10 @@ function describeRingSegment(cx, cy, rOuter, rInner, startDeg, endDeg){
 function buildRingChart(){
   // Segment colors/proportions come straight from TOP_APPS + glyphFor(),
   // same as core.mock_data.usage_breakdown() -- no separate dataset.
+  // timeFor() (not app.time directly) so a shuffle is reflected here too.
   const svg = document.getElementById('ringChart');
   svg.innerHTML = '';
-  const total = TOP_APPS.reduce((sum, app) => sum + parseMinutes(app.time), 0);
+  const total = TOP_APPS.reduce((sum, app) => sum + parseMinutes(timeFor(app)), 0);
   if(total <= 0) return;
   const cx = 56, cy = 56, rOuter = 52, rInner = 36, gapDeg = 3;
   // Fixed neutral border, NOT ambient-tinted -- the ambient signal lives
@@ -653,7 +853,7 @@ function buildRingChart(){
   const NS = 'http://www.w3.org/2000/svg';
   TOP_APPS.forEach(app=>{
     const [, color] = glyphFor(app.name);
-    const span = (parseMinutes(app.time)/total) * 360;
+    const span = (parseMinutes(timeFor(app))/total) * 360;
     const drawn = Math.max(span - gapDeg, 0);
     const path = document.createElementNS(NS, 'path');
     path.setAttribute('d', describeRingSegment(cx, cy, rOuter, rInner, angle, angle+drawn));
@@ -674,18 +874,117 @@ function applyAmbientTint(){
 function buildUsageLegend(){
   // Legend also carries the "Protected" badge -- the separate "Top apps"
   // list was removed since it duplicated this same info (same call made
-  // on the Python side: ui/dashboard.py's set_protected_apps()).
+  // on the Python side: ui/dashboard.py's set_protected_apps()). Rebuilt
+  // (not just patched) on both a shuffle and a language toggle, same
+  // "just rebuild" pattern buildIntentionRows() already uses.
   const wrap = document.getElementById('usageLegend');
   wrap.innerHTML = '';
   TOP_APPS.forEach(app=>{
     const [, color] = glyphFor(app.name);
     const row = document.createElement('div');
     row.className = 'legend-row';
-    const badge = PROTECTED.has(app.name) ? '<span class="badge">Protected</span>' : '';
+    const badge = PROTECTED.has(app.name) ? `<span class="badge">${t('protected')}</span>` : '';
     row.innerHTML = `<span class="legend-dot" style="background:${color}"></span>`
-      + `<span class="name">${app.name}</span>${badge}<span class="time">${app.time}</span>`;
+      + `<span class="name">${app.name}</span>${badge}<span class="time">${timeFor(app)}</span>`;
     wrap.appendChild(row);
   });
+}
+
+// Shuffle button -- randomizes TOP_APPS's mock times, then refreshes
+// every place that reads them: Phone Home's screen-time widget total,
+// Dashboard's big total/ambient tint/ring/legend. Interruption/Fake App
+// need no explicit refresh -- they call timeSpentTodayFor() fresh every
+// time they're opened, same as the Python side.
+function onShuffleClicked(){
+  shuffleTopApps();
+  refreshScreenTime();
+  buildRingChart();
+  buildUsageLegend();
+}
+
+function refreshScreenTime(){
+  const phoneVal = document.getElementById('phoneScreenTimeValue');
+  if(phoneVal) phoneVal.textContent = currentScreenTimeToday();
+  const dashVal = document.getElementById('bigTimeValue');
+  if(dashVal) dashVal.textContent = currentScreenTimeToday();
+  applyAmbientTint();
+}
+
+// Light/Dark -- toggles a class on #phone; every color in this file is
+// either a CSS custom property (flips automatically) or has an explicit
+// #phone.light override (see the <style> block). Session-only, resets on
+// reload, same as every other referee control.
+let darkMode = true;
+
+function toggleTheme(){
+  darkMode = !darkMode;
+  document.getElementById('phone').classList.toggle('light', !darkMode);
+  applyThemeButtonState();
+}
+
+function applyThemeButtonState(){
+  // Icon/label always shows what tapping it would switch TO (matches a
+  // typical OS dark/light toggle affordance). English-only regardless of
+  // the TH/EN toggle -- Shuffle/Light-Dark/TH-EN are meta/demo controls,
+  // not simulated phone UI, so they're deliberately exempt from
+  // translation (mirrors PhoneHomeScreen.set_theme_button_state()).
+  const btn = document.getElementById('themeBtn');
+  if(btn) btn.textContent = darkMode ? '☀️ Light' : '🌙 Dark';
+}
+
+// TH/EN -- retranslates Phone Home, Dashboard, Interruption, and Set
+// Your Intention. Fake App and the Shuffle/Light-Dark/TH-EN controls
+// themselves stay English-only, see the STRINGS comment above.
+function toggleLanguage(){
+  currentLanguage = currentLanguage === 'en' ? 'th' : 'en';
+  applyLanguage();
+}
+
+function applyLanguage(){
+  const langBtn = document.getElementById('langBtn');
+  if(langBtn) langBtn.textContent = currentLanguage === 'en' ? 'TH' : 'EN';
+
+  // Phone Home
+  const phoneCap = document.getElementById('phoneScreenTimeCaption');
+  if(phoneCap) phoneCap.textContent = t('screen_time_today');
+  const phoneUnlocksCap = document.getElementById('phoneUnlocksCaption');
+  if(phoneUnlocksCap) phoneUnlocksCap.textContent = t('unlocks');
+  const shuffleBtn = document.getElementById('shuffleBtn');
+  if(shuffleBtn) shuffleBtn.textContent = `🔀 ${t('shuffle')}`;
+
+  // Dashboard
+  document.getElementById('dashboardTitle').textContent = t('dashboard_title');
+  document.getElementById('dashboardHomeBtn').textContent = t('home');
+  document.getElementById('dashScreenTimeCaption').textContent = t('screen_time_today');
+  document.getElementById('unlocksLabel').textContent = t('unlocks');
+  document.getElementById('notificationsLabel').textContent = t('notifications');
+  document.getElementById('focusModeLabel').textContent = t('focus_mode');
+  applyFocusButtonState();  // re-derives its text with the new language
+  document.getElementById('setIntentionLink').textContent = t('set_your_intention');
+  buildUsageLegend();  // "Protected" badges need the new language too
+
+  // Interruption -- static parts always; dynamic parts (app name/time
+  // spent/countdown) only if an app is currently loaded, mirrors
+  // InterruptionScreen.set_language()'s self._current_app check.
+  document.getElementById('interruptQuestion').textContent = t('still_on_purpose');
+  document.getElementById('reaffirmChip').textContent = t('still_on_purpose');
+  document.getElementById('interruptGoBackBtn').textContent = t('go_back');
+  if(currentInterruptApp){
+    document.getElementById('interruptTitle').textContent = fmt(t('you_opened'), { app: currentInterruptApp });
+    const timeSpent = timeSpentTodayFor(currentInterruptApp);
+    if(timeSpent){
+      document.getElementById('interruptTimeSpent').textContent =
+        fmt(t('time_spent_nudge'), { time: timeSpent, app: currentInterruptApp });
+    }
+  }
+  updateContinueText(document.getElementById('interruptContinueBtn'));
+
+  // Set Your Intention
+  document.getElementById('setIntentionTitle').textContent = t('set_your_intention_title');
+  document.getElementById('setIntentionSubtitle').textContent = t('protection_subtitle');
+  document.getElementById('yourMessageLabel').textContent = t('your_message');
+  document.getElementById('setIntentionBackBtn').textContent = t('back');
+  buildIntentionRows();  // per-app "Level N:" labels need the new language too
 }
 
 // Set Your Intention screen -- one row per app: icon/name + an animated
@@ -719,7 +1018,7 @@ function buildIntentionRows(){
       </div>
       <div class="level-row${checked ? ' open' : ''}" id="lvlrow_${id}">
         <div class="level-row-inner">
-          <span class="level-label" id="lvllabel_${id}">Level ${level}:</span>
+          <span class="level-label" id="lvllabel_${id}">${fmt(t('level_label'), { level })}</span>
           <input type="range" class="level-slider" id="lvl_${id}" min="1" max="3" step="1"
                  value="${level}" ${checked ? '' : 'disabled'}
                  oninput="onLevelSliderChanged('${name}', this.value)">
@@ -740,7 +1039,7 @@ function onProtectSwitchToggled(name, checked){
 function onLevelSliderChanged(name, value){
   const level = parseInt(value, 10);
   APP_LEVELS[name] = level;
-  document.getElementById('lvllabel_' + safeId(name)).textContent = `Level ${level}:`;
+  document.getElementById('lvllabel_' + safeId(name)).textContent = fmt(t('level_label'), { level });
 }
 
 function onIntentionEdited(){
@@ -761,7 +1060,7 @@ function toggleFocusMode(){
 function applyFocusButtonState(){
   const btn = document.getElementById('focusBtn');
   if(!btn) return;
-  btn.textContent = PROTECTION_ENABLED ? 'Deactivate Focus Mode' : 'Activate Focus Mode';
+  btn.textContent = t(PROTECTION_ENABLED ? 'deactivate_focus_mode' : 'activate_focus_mode');
   btn.className = PROTECTION_ENABLED ? 'btn-focus-active' : 'btn-focus-idle';
 }
 
@@ -779,6 +1078,9 @@ let interruptUnlockTimer = null;
 let interruptCountdownTimer = null;
 let interruptSecondsLeft = 0;
 let interruptLevelCfg = PROTECTION_LEVELS[1];
+// So applyLanguage() can re-render "You opened {app}."/the time-spent
+// nudge mid-flow -- mirrors InterruptionScreen._current_app.
+let currentInterruptApp = null;
 
 function clearInterruptTimers(){
   // Defensive stop for when the screen is navigated away from
@@ -791,7 +1093,9 @@ function clearInterruptTimers(){
 }
 
 function updateContinueText(btn){
-  btn.textContent = btn.disabled ? `Continue Anyway (${interruptSecondsLeft}s)` : 'Continue Anyway';
+  btn.textContent = btn.disabled
+    ? fmt(t('continue_anyway_countdown'), { seconds: interruptSecondsLeft })
+    : t('continue_anyway');
 }
 
 function startInterruption(name){
@@ -804,13 +1108,14 @@ function startInterruption(name){
   const reaffirmEl = document.getElementById('reaffirmChip');
   reaffirmEl.style.display = 'none';
 
-  document.getElementById('interruptAppName').textContent = name;
+  currentInterruptApp = name;
+  document.getElementById('interruptTitle').textContent = fmt(t('you_opened'), { app: name });
   document.getElementById('interruptIntention').textContent = '"' + currentIntention + '"';
 
   const timeSpentEl = document.getElementById('interruptTimeSpent');
   const timeSpent = timeSpentTodayFor(name);
   if(timeSpent){
-    timeSpentEl.textContent = `You've spent ${timeSpent} on ${name} today.`;
+    timeSpentEl.textContent = fmt(t('time_spent_nudge'), { time: timeSpent, app: name });
     timeSpentEl.style.display = '';
   } else {
     timeSpentEl.style.display = 'none';
@@ -850,7 +1155,7 @@ function startInterruption(name){
       // Delay's over but still gated -- drop the stale "(0s)" suffix
       // rather than leave a countdown next to a button that isn't
       // actually about to unlock on its own.
-      continueBtn.textContent = 'Continue Anyway';
+      continueBtn.textContent = t('continue_anyway');
       reaffirmEl.style.display = 'inline-block';
     } else {
       continueBtn.disabled = false;
@@ -1093,6 +1398,7 @@ buildRingChart();
 buildUsageLegend();
 applyAmbientTint();
 applyFocusButtonState();
+applyThemeButtonState();
 </script>
 </body>
 </html>
