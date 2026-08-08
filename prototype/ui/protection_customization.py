@@ -70,11 +70,11 @@ class ProtectionCustomizationScreen(QWidget):
         header.setContentsMargins(32, 32, 32, 0)
         header.setSpacing(16)
 
-        self.title = QLabel(t("set_your_intention_title", self._language))
+        self.title = QLabel(t("set_your_intention_title", self._language) or "")
         self.title.setObjectName("screenTitle")
         header.addWidget(self.title)
 
-        self.subtitle = QLabel(t("protection_subtitle", self._language))
+        self.subtitle = QLabel(t("protection_subtitle", self._language) or "")
         self.subtitle.setObjectName("caption")
         self.subtitle.setWordWrap(True)
         header.addWidget(self.subtitle)
@@ -92,7 +92,7 @@ class ProtectionCustomizationScreen(QWidget):
             rows_layout.addWidget(self._build_row(app))
         root.addLayout(rows_layout)
 
-        self.intent_label = QLabel(t("your_message", self._language))
+        self.intent_label = QLabel(t("your_message", self._language) or "")
         self.intent_label.setObjectName("sectionLabel")
         root.addWidget(self.intent_label)
 
@@ -109,7 +109,7 @@ class ProtectionCustomizationScreen(QWidget):
         self.intention_input.editingFinished.connect(self._on_intention_edited)
         root.addWidget(self.intention_input)
 
-        self.back_btn = QPushButton(t("back", self._language))
+        self.back_btn = QPushButton(t("back", self._language) or "")
         self.back_btn.setObjectName("linkBtn")
         self.back_btn.clicked.connect(lambda: self.go_back.emit())
         root.addWidget(self.back_btn)
@@ -169,7 +169,7 @@ class ProtectionCustomizationScreen(QWidget):
         level_layout.setSpacing(8)
 
         current_level = self._levels.get(app_name, 1)
-        level_label = QLabel(t("level_label", self._language).format(level=current_level))
+        level_label = QLabel((t("level_label", self._language) or "").format(level=current_level))
         level_label.setObjectName("levelLabel")
         level_layout.addWidget(level_label)
 
@@ -221,7 +221,7 @@ class ProtectionCustomizationScreen(QWidget):
 
     def _on_level_changed(self, app_name, level):
         self._levels[app_name] = level
-        self._level_labels[app_name].setText(t("level_label", self._language).format(level=level))
+        self._level_labels[app_name].setText((t("level_label", self._language) or "").format(level=level))
         self.level_changed.emit(app_name, level)
 
     def _on_intention_edited(self):
@@ -233,9 +233,9 @@ class ProtectionCustomizationScreen(QWidget):
         message field's text are never translated (real brand names /
         user input), only static labels/titles/buttons change."""
         self._language = lang
-        self.title.setText(t("set_your_intention_title", lang))
-        self.subtitle.setText(t("protection_subtitle", lang))
-        self.intent_label.setText(t("your_message", lang))
-        self.back_btn.setText(t("back", lang))
+        self.title.setText(t("set_your_intention_title", lang) or "")
+        self.subtitle.setText(t("protection_subtitle", lang) or "")
+        self.intent_label.setText(t("your_message", lang) or "")
+        self.back_btn.setText(t("back", lang) or "")
         for app_name, label in self._level_labels.items():
-            label.setText(t("level_label", lang).format(level=self._levels.get(app_name, 1)))
+            label.setText((t("level_label", lang) or "").format(level=self._levels.get(app_name, 1)))

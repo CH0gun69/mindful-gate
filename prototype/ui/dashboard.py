@@ -178,7 +178,7 @@ class DashboardScreen(QWidget):
 
     def _apply_focus_text(self):
         key = "deactivate_focus_mode" if self.focus_active else "activate_focus_mode"
-        self.focus_btn.setText(t(key, self._language))
+        self.focus_btn.setText(t(key, self._language) or "")
 
     def set_protected_apps(self, protected_apps):
         """Update which apps are currently protected, e.g. after Setup is
@@ -193,14 +193,14 @@ class DashboardScreen(QWidget):
         headers, button text) switches. Scoped deliberately to Phone Home
         + Dashboard only, see CLAUDE.md."""
         self._language = lang
-        self.title.setText(t("dashboard_title", lang))
-        self.screen_time_caption.setText(t("screen_time_today", lang))
-        self.unlocks_card.set_label(t("unlocks", lang))
-        self.notifications_card.set_label(t("notifications", lang))
-        self.focus_label.setText(t("focus_mode", lang))
+        self.title.setText(t("dashboard_title", lang) or "")
+        self.screen_time_caption.setText(t("screen_time_today", lang) or "")
+        self.unlocks_card.set_label(t("unlocks", lang) or "")
+        self.notifications_card.set_label(t("notifications", lang) or "")
+        self.focus_label.setText(t("focus_mode", lang) or "")
         self._apply_focus_text()
-        self.protection_btn.setText(t("set_your_intention", lang))
-        self.home_btn.setText(t("home", lang))
+        self.protection_btn.setText(t("set_your_intention", lang) or "")
+        self.home_btn.setText(t("home", lang) or "")
         self._refresh_legend()  # "Protected" badges need the new language too
 
     def refresh_usage_data(self):

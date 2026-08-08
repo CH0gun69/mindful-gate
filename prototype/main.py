@@ -1,6 +1,7 @@
 import sys
 import os
 import argparse
+from typing import cast
 
 from PySide6.QtWidgets import QApplication, QMainWindow, QStackedWidget
 
@@ -165,7 +166,9 @@ class MainWindow(QMainWindow):
 
     def _on_theme_toggle_clicked(self):
         self.dark_mode = not self.dark_mode
-        QApplication.instance().setStyleSheet(load_stylesheet(self.dark_mode))
+        app = QApplication.instance()
+        if isinstance(app, QApplication):
+            app.setStyleSheet(load_stylesheet(self.dark_mode))
         self.phone_home.set_theme_button_state(self.dark_mode)
 
     def _on_language_toggle_clicked(self):
