@@ -31,6 +31,7 @@ To match the competition requirements, the repository focuses on demonstrating t
 ## Repository Structure
 
 * **`prototype/`** — Python + PySide6 interactive prototype used to validate the UX flow before implementation in SwiftUI.
+* **`swift/`** — SwiftUI port destination, Swift Playgrounds App Playground (`.swiftpm`); scaffolding only so far, see `swift/README.md`.
 * **`development-goal.md`** — Development roadmap and project planning.
 * **`README.md`** — Project overview.
 

@@ -12,3 +12,10 @@ env/
 *.log
 .vscode/
 .idea/
+
+# ===== Swift / Xcode =====
+.build/
+.swiftpm/
+DerivedData/
+xcuserdata/
+*.xcodeproj/xcuserdata/

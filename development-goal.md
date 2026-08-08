@@ -24,6 +24,10 @@ Goal: get the whole team seeing and agreeing on the flow before touching Swift.
 
 Goal: port the agreed flow into a lightweight SwiftUI app under 25 MB, offline, mock data only.
 
+**Status (2026-08-08):** Scaffolding started — `swift/MindfulGate.swiftpm` exists as an
+empty Swift Playgrounds App Playground shell (Package.swift + a Core/Views/Views-Widgets
+structure mirroring `prototype/`). No screens ported yet.
+
 - [ ] Dashboard (hardcoded screen time + stats)
 - [x] Set Your Intention screen (local @State, no persistence needed unless trivial) — protected-app selection, per-app protection levels, and the on/off toggle merged into one screen; replaces the old separate Setup + Insights screens
 - [ ] Interruption screen (core demo moment — polish this the most)

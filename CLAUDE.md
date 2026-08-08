@@ -4,9 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-mindful-gate is a **hackathon project**: a Digital Wellbeing–style mock app that interrupts mindless social media use with intentions + gentle interruptions ("You opened Instagram. Still on purpose?"). The final deliverable is a **SwiftUI** app (iPhone/iPad/Mac, offline, hardcoded mock data, under 25 MB) — that phase hasn't started yet.
+mindful-gate is a **hackathon project**: a Digital Wellbeing–style mock app that interrupts mindless social media use with intentions + gentle interruptions ("You opened Instagram. Still on purpose?"). The final deliverable is a **SwiftUI** app (iPhone/iPad/Mac, offline, hardcoded mock data, under 25 MB) — scaffolding for that phase has started (`swift/`), but no screens are ported yet.
 
-This repo currently only contains `prototype/`: a Python + PySide6 clickable prototype used to validate the UX flow before anything is built in Swift. See `development-goal.md` for current phase/scope and `README.md` for the full concept.
+This repo contains `prototype/` (Python + PySide6 clickable prototype, the UX source of truth) and `swift/` (the SwiftUI port destination — Swift Playgrounds `.swiftpm` App Playground, scaffolding only so far, see `swift/README.md`). See `development-goal.md` for current phase/scope and `README.md` for the full concept.
 
 ## Commands
 
@@ -138,9 +138,19 @@ reset to defaults on restart):
   user-typed text (the intention/message field) are never translated anywhere, on any
   screen — proper nouns and user input aren't UI copy.
 
+## Swift scaffolding (swift/) — started 2026-08-08
+
+`swift/MindfulGate.swiftpm` is a Swift Playgrounds App Playground shell: Package.swift
+(iOSApplication product, iOS 17+, no external dependencies) plus an empty
+Sources/AppModule/{Core,Views,Views/Widgets} structure mirroring prototype/'s
+core/ui/ui-widgets split. No screens ported yet — this is scaffolding only, per
+development-goal.md Phase 2. Can only be built/run via Swift Playgrounds on iPad
+(dev machine is Linux); see swift/README.md for the workflow.
+
 ## Architecture notes
 
 - prototype/core/ = business/mock data logic (mirrors ClipPortal's core/)
 - prototype/ui/ = screens; prototype/ui/widgets/ = reusable components (mirrors ClipPortal's ui/ + ui/widgets/)
+- swift/MindfulGate.swiftpm/Sources/AppModule/{Core,Views,Views/Widgets}/ mirrors this same split, one-way port target
 - Stylesheet lives in prototype/ui/styles.qss, loaded via BASE_DIR-relative path in main.py — never inline it back into main.py
 - Debug mode: python main.py --screen <name> --app <name> jumps directly to any single screen for visual QA
