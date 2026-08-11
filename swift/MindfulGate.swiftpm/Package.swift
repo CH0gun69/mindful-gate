@@ -6,6 +6,10 @@ let package = Package(
     name: "MindfulGate",
     defaultLocalization: "en",
     platforms: [.iOS("17.0")],
+    dependencies: [
+        // Add AppleProductTypes package to provide .iOSApplication and related helpers
+        .package(url: "https://github.com/apple/swift-apple-product-types", branch: "main"),
+    ],
     products: [
         .iOSApplication(
             name: "MindfulGate",
@@ -25,6 +29,9 @@ let package = Package(
         )
     ],
     targets: [
-        .executableTarget(name: "AppModule")
+        .executableTarget(
+            name: "AppModule",
+            dependencies: [.product(name: "AppleProductTypes", package: "swift-apple-product-types")]
+        )
     ]
 )

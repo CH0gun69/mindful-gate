@@ -147,6 +147,13 @@ core/ui/ui-widgets split. No screens ported yet — this is scaffolding only, pe
 development-goal.md Phase 2. Can only be built/run via Swift Playgrounds on iPad
 (dev machine is Linux); see swift/README.md for the workflow.
 
+**2026-08-11 update:** a future Mac/Xcode session has been asked to discard this
+Playgrounds scaffold entirely and rebuild the port from scratch in Xcode, porting
+directly from `prototype/` (not from this scaffold). Full instructions for that session
+are in `swift/HANDOFF.md` — read that file first if you're starting Swift work with
+Xcode available. Until then, per that handoff doc, this scaffold is left as-is and
+untouched.
+
 ## Architecture notes
 
 - prototype/core/ = business/mock data logic (mirrors ClipPortal's core/)
