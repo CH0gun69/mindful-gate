@@ -7,7 +7,7 @@ struct MindfulGateApp: App {
 
     var body: some Scene {
         WindowGroup {
-            PhoneHomeView()
+            RootView()
                 .environmentObject(appState)
                 .preferredColorScheme(.dark)
         }
