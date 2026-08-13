@@ -33,4 +33,6 @@ enum Theme {
     static let tealOnColorText = Color(hex: "#0e1012")
     static let focusIdle = Color(hex: "#3a3f47")
     static let focusActive = Color(hex: "#3ebd5e")
+    static let disabledText = Color(hex: "#6b7076")
+    static let disabledBorder = Color(hex: "#2a2e34")
 }

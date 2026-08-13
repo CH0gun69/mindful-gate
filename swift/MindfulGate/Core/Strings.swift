@@ -87,3 +87,15 @@ enum Strings {
         return langTable[key] ?? table[defaultLanguage]![key] ?? key
     }
 }
+
+extension String {
+    /// Fills "{placeholder}" tokens the way prototype call sites use
+    /// .format(app=..., time=...) on t()'s returned template string.
+    func filling(_ replacements: [String: String]) -> String {
+        var result = self
+        for (key, value) in replacements {
+            result = result.replacingOccurrences(of: "{\(key)}", with: value)
+        }
+        return result
+    }
+}
