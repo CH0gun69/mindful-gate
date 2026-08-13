@@ -11,6 +11,12 @@ final class AppState: ObservableObject {
     @Published var darkMode: Bool = true
     @Published var language: String = "en"
 
+    /// Bumped by shuffle() so views reading MockData's mutable shuffle state
+    /// directly (not itself @Published) still get told to re-render --
+    /// MockData mirrors prototype/core/mock_data.py's module-level globals,
+    /// which have no observation mechanism of their own.
+    @Published private(set) var shuffleTick: Int = 0
+
     func isProtected(_ appName: String) -> Bool {
         protectedApps.contains(appName)
     }
@@ -21,5 +27,21 @@ final class AppState: ObservableObject {
 
     func t(_ key: String) -> String {
         Strings.t(key, lang: language)
+    }
+
+    /// Referee/demo utility actions -- mirrors MainWindow owning the actual
+    /// shuffle/theme/language state in prototype/main.py, with each screen
+    /// just reporting "the button was tapped".
+    func shuffle() {
+        MockData.shuffleTopApps()
+        shuffleTick += 1
+    }
+
+    func toggleTheme() {
+        darkMode.toggle()
+    }
+
+    func toggleLanguage() {
+        language = (language == "en") ? "th" : "en"
     }
 }
