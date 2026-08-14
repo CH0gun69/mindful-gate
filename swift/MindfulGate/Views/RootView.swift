@@ -50,7 +50,7 @@ struct RootView: View {
             )
 
         case .fakeApp(let app):
-            FakeAppPlaceholderView(appName: app, onBack: { screen = .phoneHome })
+            FakeAppView(appName: app, onBack: { screen = .phoneHome })
         }
     }
 }

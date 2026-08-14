@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "flower_field.jpg",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}
