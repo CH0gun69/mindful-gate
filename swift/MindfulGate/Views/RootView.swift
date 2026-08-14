@@ -7,17 +7,20 @@ enum AppScreen: Equatable {
     case phoneHome
     case interruption(app: String)
     case fakeApp(app: String)
+    case dashboard
+    case protectionCustomization
 }
 
-/// Central navigation router. Mirrors MainWindow's _wire_navigation exactly
-/// for the slice implemented so far:
+/// Central navigation router. Mirrors MainWindow's _wire_navigation:
 ///   Phone Home --(tap protected app, protection on)--> Interruption
 ///   Phone Home --(tap non-protected app, or protection off)--> Fake App
+///   Phone Home --(tap screen-time widget)--> Dashboard
 ///   Interruption --(Continue Anyway)--> Fake App
 ///   Interruption --(Go Back)--> Phone Home
 ///   Fake App --(back arrow)--> Phone Home, always
-/// Dashboard/Set Your Intention are out of scope this session -- the
-/// screen-time widget tap is currently a no-op rather than a dead link.
+///   Dashboard --(Set your intention)--> Set Your Intention
+///   Dashboard --(Home)--> Phone Home
+///   Set Your Intention --(Back)--> Dashboard
 struct RootView: View {
     @EnvironmentObject var appState: AppState
     @State private var screen: AppScreen = .phoneHome
@@ -34,10 +37,7 @@ struct RootView: View {
                         screen = .fakeApp(app: name)
                     }
                 },
-                onOpenDashboard: {
-                    // Dashboard isn't built this session -- no-op rather than
-                    // a dead/crashing link, per the plan's stop condition.
-                }
+                onOpenDashboard: { screen = .dashboard }
             )
 
         case .interruption(let app):
@@ -51,6 +51,15 @@ struct RootView: View {
 
         case .fakeApp(let app):
             FakeAppView(appName: app, onBack: { screen = .phoneHome })
+
+        case .dashboard:
+            DashboardView(
+                onGoToProtection: { screen = .protectionCustomization },
+                onGoHome: { screen = .phoneHome }
+            )
+
+        case .protectionCustomization:
+            ProtectionCustomizationView(onGoBack: { screen = .dashboard })
         }
     }
 }
