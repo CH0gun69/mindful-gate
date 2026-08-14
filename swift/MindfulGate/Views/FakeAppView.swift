@@ -44,12 +44,11 @@ struct FakeAppView: View {
     private var header: some View {
         HStack(spacing: 12) {
             Button(action: onBack) {
-                Text("←")
-                    .font(.system(size: 18))
-                    .foregroundStyle(Theme.textPrimary)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 18, weight: .semibold))
             }
+            .buttonStyle(.plain)
+            .foregroundStyle(Theme.textPrimary)
 
             ZStack {
                 RoundedRectangle(cornerRadius: 10)

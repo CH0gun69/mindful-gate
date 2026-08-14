@@ -108,11 +108,12 @@ struct PhoneHomeView: View {
         Button(action: action) {
             Text(title)
                 .font(.system(size: 12))
-                .foregroundStyle(Theme.textSecondary)
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 10)
+                .padding(.vertical, 2)
         }
-        .buttonStyle(CardButtonStyle(cornerRadius: 12))
+        .buttonStyle(.bordered)
+        .buttonBorderShape(.capsule)
+        .tint(Theme.textSecondary)
     }
 
     private var dock: some View {

@@ -61,11 +61,10 @@ struct InterruptionView: View {
                 Button(action: { timer.reaffirmTapped() }) {
                     Text(appState.t("still_on_purpose"))
                         .font(.system(size: 13))
-                        .foregroundStyle(Theme.teal)
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 6)
-                        .overlay(Capsule().stroke(Theme.teal, lineWidth: 1))
                 }
+                .buttonStyle(.bordered)
+                .buttonBorderShape(.capsule)
+                .tint(Theme.teal)
             }
 
             Spacer()
@@ -97,13 +96,21 @@ struct InterruptionView: View {
 
             Button(action: onGoBack) {
                 Text(appState.t("go_back"))
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(Theme.tealOnColorText)
+                    .frame(maxWidth: .infinity)
             }
-            .buttonStyle(PrimaryButtonStyle())
+            .buttonStyle(.borderedProminent)
+            .tint(Theme.teal)
 
             Button(action: onContinue) {
                 Text(continueText)
+                    .font(.system(size: 14))
+                    .foregroundStyle(timer.isContinueEnabled ? Theme.textPrimary : Theme.disabledText)
+                    .frame(maxWidth: .infinity)
             }
-            .buttonStyle(SecondaryButtonStyle(isEnabled: timer.isContinueEnabled))
+            .buttonStyle(.bordered)
+            .tint(timer.isContinueEnabled ? Theme.borderDefault : Theme.disabledBorder)
             .disabled(!timer.isContinueEnabled)
         }
         .padding(.horizontal, 48)
