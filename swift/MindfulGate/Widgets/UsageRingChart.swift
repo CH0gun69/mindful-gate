@@ -1,14 +1,5 @@
 import SwiftUI
 
-/// A simple donut/ring chart: each segment gets an arc proportional to its
-/// share of the total. Not pixel-perfect -- a handful of solid-color arced
-/// segments is enough for this prototype. Ported from
-/// prototype/ui/widgets/usage_ring_chart.py.
-///
-/// Segments are drawn starting from 12 o'clock, clockwise, in the order
-/// given. Individual segment fill colors always come from `segments` and are
-/// never touched by `borderColor` -- that only affects the shared
-/// outline/overall tone (Dashboard overrides it for its ambient tint).
 struct UsageRingChart: View {
     struct Segment {
         let name: String
@@ -32,11 +23,6 @@ struct UsageRingChart: View {
             let radius = min(size.width, size.height) / 2 - thickness / 2 - 1
             let center = CGPoint(x: size.width / 2, y: size.height / 2)
 
-            // Qt's convention: 0deg = 3 o'clock, positive = counter-clockwise.
-            // Start at 12 o'clock (90deg) and step clockwise (subtracting) --
-            // reproduced here using SwiftUI's clockwise Angle(degrees:) from
-            // the same 12-o'clock reference (-90deg in standard screen coords,
-            // since y grows downward).
             var startDegrees = -90.0
             for segment in segments {
                 let span = (Double(segment.minutes) / Double(total)) * 360

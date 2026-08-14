@@ -1,9 +1,5 @@
 import SwiftUI
 
-/// "feed" style: Instagram / Facebook / X (Twitter) / Reddit. Ported from
-/// fake_app_screen.py's _build_feed_body. Same 3 MOCK_FEED_POSTS shared
-/// across every feed app, just re-skinned per app's accent color and
-/// per-app action-button config (icons/labeled/vote).
 struct FeedBodyView: View {
     let appName: String
     let accentColor: Color
@@ -26,8 +22,6 @@ struct FeedBodyView: View {
     }
 }
 
-/// Dispatches to Reddit's genuinely-different vote-cluster layout, or the
-/// shared header/photo/caption/actions card used by the other three apps.
 struct FeedPostCardView: View {
     let username: String
     let caption: String
@@ -101,15 +95,11 @@ struct StandardFeedPostCardView: View {
                 Rectangle().fill(Color(hex: "#2a2a2c")).frame(height: 1)
             }
         case .vote:
-            EmptyView()  // handled by RedditPostCardView instead
+            EmptyView()
         }
     }
 }
 
-/// Reddit's post shape: a vertical vote cluster on the left instead of a
-/// bottom action row, with comment count shown separately below the
-/// caption -- matches how Reddit's real layout actually differs, not just
-/// its colors/icons.
 struct RedditPostCardView: View {
     let username: String
     let caption: String
@@ -150,7 +140,6 @@ struct RedditPostCardView: View {
     }
 }
 
-// MARK: - Shared header/photo/caption (used by both card shapes)
 
 struct FeedPostHeader: View {
     let username: String

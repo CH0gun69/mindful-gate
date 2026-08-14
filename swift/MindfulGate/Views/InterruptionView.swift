@@ -1,8 +1,5 @@
 import SwiftUI
 
-/// "You opened {app}. Still on purpose?" gate screen. Ported from
-/// prototype/ui/interruption.py. Per-level gating (delay/breathing/reaffirm)
-/// lives in InterruptionTimerModel; this view is purely presentational.
 struct InterruptionView: View {
     let appName: String
     let intention: String
@@ -20,10 +17,6 @@ struct InterruptionView: View {
     private var timeSpent: String? { MockData.timeSpentTodayFor(appName) }
 
     private var continueText: String {
-        // Once the delay elapses -- whether Continue auto-enabled or is
-        // waiting on a reaffirm tap -- drop the countdown suffix rather than
-        // show a stale "(0s)" next to a button that isn't about to unlock
-        // on its own (reaffirm case) or is already unlocked (auto case).
         if timer.isContinueEnabled || timer.showReaffirm {
             return appState.t("continue_anyway")
         }

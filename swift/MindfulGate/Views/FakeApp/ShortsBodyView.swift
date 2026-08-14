@@ -1,14 +1,8 @@
 import SwiftUI
 
-/// "shorts" style: TikTok / YouTube. Ported from fake_app_screen.py's
-/// _build_shorts_body -- one full-bleed vertical photo, a translucent
-/// caption bar at the bottom, and an engagement icon column bottom-right.
 struct ShortsBodyView: View {
     let appName: String
 
-    /// TikTok and YouTube land on the same MOCK_IMAGES bucket via the
-    /// general-purpose hash, so guarantee they differ explicitly here,
-    /// same as SHORTS_IMAGE_OFFSET in the Python source.
     private static let imageOffsets: [String: Int] = ["TikTok": 0, "YouTube": 3]
 
     private var imageIndex: Int {

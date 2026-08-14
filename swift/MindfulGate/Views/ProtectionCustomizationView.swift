@@ -1,17 +1,5 @@
 import SwiftUI
 
-/// Single combined destination for setting up protection: pick which apps to
-/// protect, write an intention message, and set each app's friction level
-/// (1/2/3). Ported from prototype/ui/protection_customization.py.
-///
-/// The overall on/off switch lives on Dashboard only (Activate/Deactivate
-/// Focus Mode) -- this screen has no master toggle of its own; every change
-/// here applies live/instantly via `appState`, same as the Python version's
-/// per-app switch/level-slider/intention-field signals.
-///
-/// Per swift/HANDOFF.md: the Python ToggleSwitch/LevelSlider are
-/// deliberately NOT recreated as custom controls here -- native SwiftUI
-/// `Toggle`/`Slider` are used instead.
 struct ProtectionCustomizationView: View {
     var onGoBack: () -> Void = {}
 
@@ -43,11 +31,6 @@ struct ProtectionCustomizationView: View {
                     .foregroundStyle(Theme.textSecondary)
                     .padding(.top, 8)
 
-                // User input -- never translated, same rule as
-                // Interruption's intention quote. Committed on submit
-                // (Python's editingFinished == field losing focus), not on
-                // every keystroke, so a stray backspace mid-typing can't
-                // briefly interrupt with an empty/partial intention.
                 TextField(MockData.defaultIntention, text: $intentionText, onCommit: commitIntention)
                     .font(.system(size: 14))
                     .foregroundStyle(Theme.textPrimary)
@@ -120,9 +103,6 @@ struct ProtectionCustomizationView: View {
                 .tint(Theme.teal)
             }
 
-            // Collapsible level control -- only meaningful/visible while
-            // Protect is on, revealed with a smooth expand/collapse like the
-            // Python version's animated maximumHeight.
             if isOn {
                 levelRow(app)
                     .transition(.opacity.combined(with: .move(edge: .top)))

@@ -1,8 +1,5 @@
 import SwiftUI
 
-/// Which screen is currently shown -- a minimal SwiftUI equivalent of
-/// prototype/main.py's MainWindow owning a QStackedWidget + wiring
-/// navigation as signal/slot connections between screens.
 enum AppScreen: Equatable {
     case phoneHome
     case interruption(app: String)
@@ -11,16 +8,6 @@ enum AppScreen: Equatable {
     case protectionCustomization
 }
 
-/// Central navigation router. Mirrors MainWindow's _wire_navigation:
-///   Phone Home --(tap protected app, protection on)--> Interruption
-///   Phone Home --(tap non-protected app, or protection off)--> Fake App
-///   Phone Home --(tap screen-time widget)--> Dashboard
-///   Interruption --(Continue Anyway)--> Fake App
-///   Interruption --(Go Back)--> Phone Home
-///   Fake App --(back arrow)--> Phone Home, always
-///   Dashboard --(Set your intention)--> Set Your Intention
-///   Dashboard --(Home)--> Phone Home
-///   Set Your Intention --(Back)--> Dashboard
 struct RootView: View {
     @EnvironmentObject var appState: AppState
     @State private var screen: AppScreen = .phoneHome

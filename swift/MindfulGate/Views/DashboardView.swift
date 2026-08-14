@@ -1,7 +1,5 @@
 import SwiftUI
 
-/// Screen time today (ring + legend) + Focus Mode toggle + link to Set Your
-/// Intention. Ported from prototype/ui/dashboard.py.
 struct DashboardView: View {
     var onGoToProtection: () -> Void = {}
     var onGoHome: () -> Void = {}
@@ -9,14 +7,10 @@ struct DashboardView: View {
     @EnvironmentObject var appState: AppState
 
     private var breakdown: [UsageRingChart.Segment] {
-        // Reads MockData.usageBreakdown() fresh on every render, gated by
-        // appState.shuffleTick so a Shuffle tap (on Phone Home) is reflected
-        // here too -- same "re-render, don't own a private copy" idea as
-        // the Python DashboardScreen.refresh_usage_data().
         _ = appState.shuffleTick
-        return MockData.usageBreakdown().map {
-            UsageRingChart.Segment(name: $0.name, minutes: $0.minutes, color: $0.color)
-        }
+        return MockData.usageBreakdown()
+            .sorted { $0.minutes > $1.minutes }
+            .map { UsageRingChart.Segment(name: $0.name, minutes: $0.minutes, color: $0.color) }
     }
 
     private var isHigh: Bool {
@@ -34,8 +28,8 @@ struct DashboardView: View {
                 screenTimeCard
 
                 HStack(spacing: 12) {
-                    StatCard(label: appState.t("unlocks"), value: "\(MockData.unlocksToday)")
-                    StatCard(label: appState.t("notifications"), value: "\(MockData.notificationsToday)")
+                    StatCard(label: appState.t("unlocks"), value: "\(appState.unlocksToday)")
+                    StatCard(label: appState.t("notifications"), value: "\(appState.notificationsToday)")
                 }
 
                 Text(appState.t("focus_mode"))
@@ -98,8 +92,7 @@ struct DashboardView: View {
     }
 
     private func legendRow(segment: UsageRingChart.Segment) -> some View {
-        let entry = MockData.usageBreakdown().first { $0.name == segment.name }
-        return HStack(spacing: 10) {
+        HStack(spacing: 10) {
             Circle()
                 .fill(Color(hex: segment.color))
                 .overlay(Circle().stroke(Theme.borderDefault, lineWidth: 1))
@@ -117,15 +110,13 @@ struct DashboardView: View {
 
             Spacer()
 
-            Text(entry?.timeString ?? "")
+            Text(MockData.formatMinutes(segment.minutes))
                 .font(.system(size: 13))
                 .foregroundStyle(Theme.textMuted)
         }
     }
 }
 
-/// Underlined, muted text-only button (QPushButton#linkBtn) -- "Set your
-/// intention" / "Home" on Dashboard, "Back" on Set Your Intention.
 struct LinkButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label

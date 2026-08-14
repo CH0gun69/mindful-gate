@@ -1,8 +1,5 @@
 import SwiftUI
 
-/// "messages" style: Messages. Ported from fake_app_screen.py's
-/// _build_messages_body -- a fixed 128pt contact sidebar (first row
-/// highlighted) + a scrollable chat bubble view.
 struct MessagesBodyView: View {
     var body: some View {
         HStack(spacing: 0) {

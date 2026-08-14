@@ -1,11 +1,5 @@
 import SwiftUI
 
-/// Mock "you opened the app" screen, reconfigured per-app rather than one
-/// bespoke screen per app. Ported from prototype/ui/fake_app_screen.py.
-/// Shares one header (back button + avatar + title) across every app, then
-/// picks a body style via MockData.styleFor(name). Entirely English-only,
-/// no translation at all -- this is mocked "real app" content, not
-/// mindful-gate's own UI copy, same reasoning as the rest of this screen.
 struct FakeAppView: View {
     let appName: String
     var onBack: () -> Void = {}
@@ -32,11 +26,6 @@ struct FakeAppView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .background(Theme.background)
-        // Unlike PhoneHome/Interruption, this screen doesn't draw its own
-        // fake status bar row -- respect the top safe area so the header
-        // clears the Dynamic Island/notch (no such hardware concern existed
-        // in the prototype's chrome-less desktop window) while still
-        // letting body content run edge-to-edge at the bottom.
         .ignoresSafeArea(edges: .bottom)
         .statusBarHidden()
     }
@@ -72,8 +61,6 @@ struct FakeAppView: View {
                 Text(appName)
                     .font(.system(size: 17, weight: .semibold))
                     .foregroundStyle(Theme.textPrimary)
-                // Hardcoded English, not through Strings.t() -- this screen
-                // is entirely untranslated, same as the Python source.
                 if let timeSpent {
                     Text("\(timeSpent) today")
                         .font(.system(size: 11))

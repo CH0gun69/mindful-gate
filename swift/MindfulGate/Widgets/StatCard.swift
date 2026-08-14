@@ -1,8 +1,5 @@
 import SwiftUI
 
-/// Small value+label stat block (QFrame#statCard). Ported from
-/// prototype/ui/widgets/stat_card.py. Used in a row of two on Dashboard
-/// (Unlocks / Notifications).
 struct StatCard: View {
     let label: String
     let value: String

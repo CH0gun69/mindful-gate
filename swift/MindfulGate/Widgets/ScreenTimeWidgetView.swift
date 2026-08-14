@@ -1,8 +1,5 @@
 import SwiftUI
 
-/// Compact tappable screen-time summary card for Phone Home, mirroring a real
-/// phone's screen-time widget. Ported from
-/// prototype/ui/widgets/screen_time_widget.py. Tapping it opens Dashboard.
 struct ScreenTimeWidgetView: View {
     @EnvironmentObject var appState: AppState
     var onTap: (() -> Void)? = nil
@@ -21,10 +18,6 @@ struct ScreenTimeWidgetView: View {
                 Spacer()
                 Rectangle()
                     .fill(Theme.borderDefault)
-                    // Bare Rectangle() has no intrinsic height and greedily
-                    // expands to fill whatever the HStack offers -- must be
-                    // bounded explicitly (roughly matches the two-line
-                    // value+caption blocks either side of it).
                     .frame(width: 1, height: 36)
                 VStack(alignment: .trailing, spacing: 2) {
                     Text("\(MockData.unlocksToday)")
@@ -43,8 +36,6 @@ struct ScreenTimeWidgetView: View {
     }
 }
 
-/// Shared bg-swap-on-press style for card-shaped buttons (screenTimeWidget /
-/// miniControlBtn both use the same #1d2026 -> #23272f pressed pattern).
 struct CardButtonStyle: ButtonStyle {
     var cornerRadius: CGFloat
     func makeBody(configuration: Configuration) -> some View {

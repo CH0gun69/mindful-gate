@@ -1,10 +1,5 @@
 import SwiftUI
 
-/// Mock phone lock/home screen -- the entry point of the app. Ported from
-/// prototype/ui/phone_home.py. Tapping any app icon fires onAppTapped(name)
-/// -- the caller (navigation, wired in a later step) decides whether that
-/// means showing the Interruption screen or opening the Fake App directly.
-/// Dock icons stay inert, matching the prototype.
 struct PhoneHomeView: View {
     @EnvironmentObject var appState: AppState
 
@@ -13,9 +8,6 @@ struct PhoneHomeView: View {
 
     private static let gridColumns = 4
 
-    /// Merge topApps + protectableApps into one ordered name list, same as
-    /// prototype's _build_app_roster() -- Instagram, YouTube, TikTok,
-    /// Messages, X (Twitter), Facebook, Reddit.
     private var appRoster: [String] {
         var names = MockData.topApps.map(\.name)
         for name in MockData.protectableApps where !names.contains(name) {
@@ -44,11 +36,6 @@ struct PhoneHomeView: View {
         }
         .padding(.bottom, 20)
         .background(Theme.background)
-        // This screen draws its own fake status bar (matching the Python
-        // prototype's fixed 390x780 "phone" window, no real OS chrome around
-        // it) -- ignore the real device safe area and hide the real iOS
-        // status bar so we don't stack real system chrome on top of our
-        // simulated one.
         .ignoresSafeArea()
         .statusBarHidden()
     }
@@ -90,11 +77,6 @@ struct PhoneHomeView: View {
             .padding(.vertical, 8)
     }
 
-    /// Three compact referee/demo utility controls: Shuffle (randomize mock
-    /// usage data live), Light/Dark, TH/EN. Always English-only labels, same
-    /// as the prototype -- these are meta/demo controls, not simulated phone
-    /// UI. Light/Dark and TH/EN currently just flip AppState + their own
-    /// label; the full palette/translation swap is a later-stage item.
     private var controlsRow: some View {
         HStack(spacing: 8) {
             miniControlButton("🔀 \(Strings.t("shuffle"))") { appState.shuffle() }
